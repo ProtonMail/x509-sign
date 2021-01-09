@@ -38,6 +38,8 @@ jobs:
           path: vendor
           key: ${{ runner.os }}-style-php-${{ matrix.php }}-${{ hashFiles('**/composer.lock') }}
           restore-keys: ${{ runner.os }}-style-php-${{ matrix.php }}-
+        env:
+          COMPOSER_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Install dependencies
         if: steps.composer-cache.outputs.cache-hit != 'true'
