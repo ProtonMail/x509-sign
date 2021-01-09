@@ -27,7 +27,7 @@ jobs:
           php-version: ${{ matrix.php }}
           extensions: json
           tools: composer:v2
-          coverage: none
+          coverage: xdebug
         env:
           COMPOSER_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
