@@ -9,6 +9,9 @@ use phpseclib3\Exception\NoKeyLoadedException;
 use PHPUnit\Framework\TestCase;
 use Proton\X509Sign\RequestHandler\PublicKeyHandler;
 
+/**
+ * @covers \Proton\X509Sign\RequestHandler\PublicKeyHandler::handle
+ */
 class PublicKeyHandlerTest extends TestCase
 {
     public function testHandle(): void
