@@ -51,6 +51,16 @@ class ServerTest extends TestCase
 
         self::assertIsArray($data, 'should decode as an array');
         self::assertIsString($data['publicKey']['result'] ?? null, 'should return a string result');
+
+        ob_start();
+        $server->handleRequests(['publicKey' => []]);
+        $contents = ob_get_contents();
+        ob_end_clean();
+
+        $data = json_decode($contents, true);
+
+        self::assertIsArray($data, 'should decode as an array');
+        self::assertIsString($data['publicKey']['result'] ?? null, 'should return a string result');
     }
 
     /**
