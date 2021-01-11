@@ -29,6 +29,7 @@
     },
     "require": {
         "php": ">=7.4",
+        "ext-json": "*",
         "phpseclib/phpseclib": "^3.1@beta"
     },
     "require-dev": {

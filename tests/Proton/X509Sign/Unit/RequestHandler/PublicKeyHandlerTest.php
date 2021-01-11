@@ -2,18 +2,22 @@
 
 declare(strict_types=1);
 
-namespace Tests\Proton\X509Sign\RequestHandler;
+namespace Tests\Proton\X509Sign\Unit\RequestHandler;
 
 use phpseclib3\Crypt\RSA\PrivateKey;
 use phpseclib3\Exception\NoKeyLoadedException;
 use PHPUnit\Framework\TestCase;
 use Proton\X509Sign\RequestHandler\PublicKeyHandler;
 
+/**
+ * @covers \Proton\X509Sign\RequestHandler\PublicKeyHandler::handle
+ */
 class PublicKeyHandlerTest extends TestCase
 {
     public function testHandle(): void
     {
         $handler = new PublicKeyHandler();
+        /** @var PrivateKey $privateKey */
         $privateKey = PrivateKey::createKey()->withPassword('Le petit chien est sur la pente fatale.');
 
         $result = $handler->handle(
@@ -38,6 +42,7 @@ class PublicKeyHandlerTest extends TestCase
         self::expectExceptionMessage('Unable to read key');
 
         $handler = new PublicKeyHandler();
+        /** @var PrivateKey $privateKey */
         $privateKey = PrivateKey::createKey()->withPassword('Le petit chien est sur la pente fatale.');
 
         $handler->handle(
@@ -50,6 +55,7 @@ class PublicKeyHandlerTest extends TestCase
     public function testHandleWrongKey(): void
     {
         $handler = new PublicKeyHandler();
+        /** @var PrivateKey $privateKey */
         $privateKey = PrivateKey::createKey()->withPassword('Correct');
 
         $result = $handler->handle(

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Proton\X509Sign;
 
+use InvalidArgumentException;
 use phpseclib3\Crypt\RSA\PrivateKey;
 use Proton\X509Sign\RequestHandler\PublicKeyHandler;
 use Proton\X509Sign\RequestHandler\SignedCertificateHandler;
@@ -51,9 +52,10 @@ class Server
     protected function getGroupedResponse(array $requests): iterable
     {
         $first = true;
+
         foreach ($requests as $id => $data) {
             yield ($first ? '' : ',') . json_encode($id) . ':';
-            yield from $this->getRequestResponse((string) $id, $data);
+            yield json_encode($this->getRequestResponse((string) $id, $data));
 
             if ($first) {
                 $first = false;
@@ -65,45 +67,39 @@ class Server
      * @param string $id
      * @param mixed $data
      *
-     * @return iterable<string>
+     * @return array{success: bool, error?: string, result?: mixed}
      */
-    protected function getRequestResponse(string $id, $data): iterable
+    protected function getRequestResponse(string $id, $data): array
+    {
+        try {
+            return [
+                'success' => true,
+                'result' => $this->executeHandler($id, $data),
+            ];
+        } catch (Throwable $exception) {
+            return [
+                'success' => false,
+                'error' => $exception->getMessage(),
+            ];
+        }
+    }
+
+    protected function executeHandler(string $id, $data)
     {
         $handler = $this->handlers[$id] ?? null;
-        $error = null;
 
         if (!$handler) {
-            $error = "No handler for $id request.";
+            throw new InvalidArgumentException("No handler for $id request.");
         }
 
         if (!is_array($data)) {
-            $error = "Request data must be an array.";
+            throw new InvalidArgumentException("Request data must be an array.");
         }
 
-        $result = null;
-
-        try {
-            $result = (new $handler())->handle(
-                $this->privateKey,
-                $this->privateKeyPassPhrase,
-                (array) $data,
-            );
-        } catch (Throwable $exception) {
-            $error = $exception->getMessage();
-        }
-
-        if ($error) {
-            yield json_encode([
-                'success' => false,
-                'error' => $error,
-            ]);
-
-            return;
-        }
-
-        yield json_encode([
-            'success' => true,
-            'result' => $result,
-        ]);
+        return (new $handler())->handle(
+            $this->privateKey,
+            $this->privateKeyPassPhrase,
+            (array) $data,
+        );
     }
 }
