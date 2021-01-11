@@ -9,11 +9,13 @@ use phpseclib3\Crypt\RSA\PublicKey;
 
 final class User
 {
-    private PrivateKey $userKey;
-
     private array $subjectDn = [
         'commonName' => 'Bob'
     ];
+
+    private PrivateKey $userKey;
+
+    private string $certificate;
 
     public function __construct()
     {
@@ -40,5 +42,21 @@ final class User
     public function getSubjectDn(): array
     {
         return $this->subjectDn;
+    }
+
+    public function use(Application $application): void
+    {
+        $application->receiveRequestFromUser($this);
+    }
+
+    public function receiveCertificate(string $certificate): void
+    {
+        $this->certificate = $certificate;
+    }
+
+    public function isSatisfiedWithItsCertificate(): bool
+    {
+        // TODO: make the user more exigent
+        return is_string($this->certificate);
     }
 }

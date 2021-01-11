@@ -28,20 +28,23 @@ class Server
     }
 
     /**
-     * @param array[] $requests
+     * @param array<string, array> $requests
      * @param resource|null $outputHandler
      */
     public function handleRequests(array $requests, $outputHandler = null): void
     {
-        $outputHandler = $outputHandler ?? fopen('php://output', 'w');
-        fwrite($outputHandler, '{');
+        $handler = $outputHandler ?? fopen('php://output', 'w');
+        fwrite($handler, '{');
 
         foreach ($this->getGroupedResponse($requests) as $output) {
-            fwrite($outputHandler, $output);
+            fwrite($handler, $output);
         }
 
-        fwrite($outputHandler, '}');
-        fclose($outputHandler);
+        fwrite($handler, '}');
+
+        if (!$outputHandler) {
+            fclose($handler);
+        }
     }
 
     /**

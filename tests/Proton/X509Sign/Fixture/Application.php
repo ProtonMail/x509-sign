@@ -7,6 +7,7 @@ namespace Tests\Proton\X509Sign\Fixture;
 use phpseclib3\Crypt\RSA\PrivateKey;
 use phpseclib3\Crypt\RSA\PublicKey;
 use phpseclib3\File\X509;
+use Proton\X509Sign\Server;
 
 /**
  * Application class represents a separated application using the signature endpoint
@@ -27,6 +28,12 @@ final class Application
     private PrivateKey $applicationKey;
 
     private ?User $currentUser = null;
+
+    private ?Server $signatureServer = null;
+
+    private ?string $signatureServerPublicKey = null;
+
+    private bool $satisfied = false;
 
     public function __construct()
     {
@@ -69,5 +76,65 @@ final class Application
     public function getIssuerDn(): array
     {
         return $this->issuerDn;
+    }
+
+    public function connectToSignatureServer(Server $signatureServer): void
+    {
+        $this->signatureServer = $signatureServer;
+    }
+
+    public function askForSignature(): void
+    {
+        $response = $this->postJson([
+            'signedCertificate' => [
+                'certificate' => $this->generateCertificate($this->getSignatureServerPublicKey()),
+                'clientPublicKey' => $this->currentUser->getPublicKey(),
+            ],
+        ]);
+
+        if (!($response['signedCertificate']['success'] ?? false)) {
+            return;
+        }
+
+        /** @var string $certificate */
+        $certificate = $response['signedCertificate']['result'];
+
+        $this->currentUser->receiveCertificate($certificate);
+        $this->satisfied = $this->currentUser->isSatisfiedWithItsCertificate();
+    }
+
+    public function isSatisfied(): bool
+    {
+        return $this->satisfied;
+    }
+
+    private function getSignatureServerPublicKey(): string
+    {
+        if (!$this->signatureServerPublicKey) {
+            $response = $this->postJson([
+                'publicKey' => [],
+            ]);
+
+            $this->signatureServerPublicKey = $response['publicKey']['result'];
+        }
+
+        return $this->signatureServerPublicKey;
+    }
+
+    /**
+     * @param array<string, array> $requests
+     *
+     * @return array<string, array{success: bool, error?: string, result?: mixed}>
+     */
+    private function postJson(array $requests): array
+    {
+        $tempFile = tempnam(sys_get_temp_dir(), 'x509-sign');
+        $handler = fopen($tempFile, 'w+');
+        $this->signatureServer->handleRequests($requests, $handler);
+        fclose($handler);
+        $contents = file_get_contents($tempFile);
+        unlink($tempFile);
+
+        return json_decode($contents, true);
     }
 }
