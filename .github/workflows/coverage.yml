@@ -27,7 +27,9 @@ jobs:
           php-version: ${{ matrix.php }}
           extensions: json
           tools: composer:v2
-          coverage: none
+          coverage: xdebug
+        env:
+          COMPOSER_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Cache Composer packages
         id: composer-cache
@@ -36,10 +38,12 @@ jobs:
           path: vendor
           key: ${{ runner.os }}-style-php-${{ matrix.php }}-${{ hashFiles('**/composer.lock') }}
           restore-keys: ${{ runner.os }}-style-php-${{ matrix.php }}-
+        env:
+          COMPOSER_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Install dependencies
         if: steps.composer-cache.outputs.cache-hit != 'true'
-        run: composer update --prefer-dist --no-progress --no-suggest ${{ matrix.php >= 8.1 && '--ignore-platform-req=php' || '' }}
+        run: composer update --prefer-dist --no-progress ${{ matrix.php >= 8.1 && '--ignore-platform-req=php' || '' }}
 
       - name: Run test suite
         run: composer coverage
