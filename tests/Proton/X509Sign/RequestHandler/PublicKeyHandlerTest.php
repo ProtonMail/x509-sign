@@ -17,6 +17,7 @@ class PublicKeyHandlerTest extends TestCase
     public function testHandle(): void
     {
         $handler = new PublicKeyHandler();
+        /** @var PrivateKey $privateKey */
         $privateKey = PrivateKey::createKey()->withPassword('Le petit chien est sur la pente fatale.');
 
         $result = $handler->handle(
@@ -41,6 +42,7 @@ class PublicKeyHandlerTest extends TestCase
         self::expectExceptionMessage('Unable to read key');
 
         $handler = new PublicKeyHandler();
+        /** @var PrivateKey $privateKey */
         $privateKey = PrivateKey::createKey()->withPassword('Le petit chien est sur la pente fatale.');
 
         $handler->handle(
@@ -53,6 +55,7 @@ class PublicKeyHandlerTest extends TestCase
     public function testHandleWrongKey(): void
     {
         $handler = new PublicKeyHandler();
+        /** @var PrivateKey $privateKey */
         $privateKey = PrivateKey::createKey()->withPassword('Correct');
 
         $result = $handler->handle(

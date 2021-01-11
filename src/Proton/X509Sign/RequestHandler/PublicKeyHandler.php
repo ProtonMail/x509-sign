@@ -16,10 +16,11 @@ class PublicKeyHandler implements RequestHandlerInterface
      *
      * @return string
      */
-    public function handle(string $privateKey, ?string $privateKeyPassPhrase, array $data = [])
+    public function handle(string $privateKey, ?string $privateKeyPassPhrase, array $data = []): string
     {
-        return PrivateKey::load($privateKey, $privateKeyPassPhrase ?? false)
-                ->getPublicKey()
-                ->toString($data['format'] ?? 'PKCS1');
+        /** @var PrivateKey $privateKey */
+        $privateKey = PrivateKey::load($privateKey, $privateKeyPassPhrase ?? false);
+
+        return $privateKey->getPublicKey()->toString($data['format'] ?? 'PKCS1');
     }
 }
