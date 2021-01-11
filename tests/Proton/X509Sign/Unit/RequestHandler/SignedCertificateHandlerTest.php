@@ -2,18 +2,17 @@
 
 declare(strict_types=1);
 
-namespace Tests\Proton\X509Sign\RequestHandler;
+namespace Tests\Proton\X509Sign\Unit\RequestHandler;
 
 use Generator;
 use phpseclib3\Crypt\RSA\PrivateKey;
 use phpseclib3\Crypt\RSA\PublicKey;
 use phpseclib3\File\X509;
-use phpseclib3\Math\BigInteger;
 use PHPUnit\Framework\TestCase;
-use Proton\Apps\VPN\Contract\ClientCertificateInterface;
 use Proton\X509Sign\RequestHandler\SignedCertificateHandler;
 use RuntimeException;
-use function Proton\Support\config;
+use Tests\Proton\X509Sign\Fixture\Application;
+use Tests\Proton\X509Sign\Fixture\User;
 
 /**
  * @covers \Proton\X509Sign\RequestHandler\SignedCertificateHandlerTest::handle
@@ -27,73 +26,37 @@ class SignedCertificateHandlerTest extends TestCase
      */
     public function testHandle(?string $passPhrase): void
     {
-        $issuerDn = [
-            'countryName' => 'US',
-            'stateOrProvinceName' => 'NY',
-            'localityName' => 'New York',
-            'organizationName' => 'Any Organization',
-            'organizationalUnitName' => 'Some Department',
-            'commonName' => 'Dream Team',
-            'emailAddress' => 'dreamteam@any.org',
-        ];
-
-        $subjectDn = ['commonName' => 'Bob'];
-
-        $handler = new SignedCertificateHandler();
         /** @var PrivateKey $signServerPrivateKey */
         $signServerPrivateKey = PrivateKey::createKey()->withPassword($passPhrase ?? false);
 
         /** @var PublicKey $signServerPublicKey */
         $signServerPublicKey = $signServerPrivateKey->getPublicKey();
 
-        /** @var PrivateKey $middlewarePrivateKey */
-        $middlewarePrivateKey = PrivateKey::createKey();
+        $application = new Application();
+        $user = new User();
+        $application->receiveRequestFromUser($user);
+        $certificate = $application->generateCertificate($signServerPublicKey->toString('PKCS1'));
 
-        /** @var PublicKey $middlewarePublicKey */
-        $middlewarePublicKey = $middlewarePrivateKey->getPublicKey();
-
-        /** @var PrivateKey $clientPrivateKey */
-        $clientPrivateKey = PrivateKey::createKey();
-
-        /** @var PublicKey $publicKey */
-        $clientPublicKey = $clientPrivateKey->getPublicKey();
-
-        $subject = new X509();
-        $subject->setPublicKey($signServerPublicKey);
-        $subject->setDN($subjectDn);
-
-        $issuer = new X509();
-        $issuer->setPrivateKey($middlewarePrivateKey);
-        $issuer->setDN($issuerDn);
-
-        $x509 = new X509();
-        $x509->makeCA();
-        $x509->setSerialNumber('42', 10);
-        $x509->setStartDate('-1 second');
-        $x509->setEndDate('1 day');
-
-        $certificate = $x509->saveX509($x509->sign($issuer, $subject));
-
-        $result = $handler->handle(
+        $result = (new SignedCertificateHandler())->handle(
             $signServerPrivateKey->toString('PKCS1'),
             $passPhrase,
             [
                 'certificate' => $certificate,
-                'clientPublicKey' => $clientPublicKey->toString('PKCS1'),
-                'issuerPublicKey' => $middlewarePublicKey->toString('PKCS1'),
+                'clientPublicKey' => $user->getPublicKey(),
             ],
         );
 
         self::assertNotSame($certificate, $result);
 
+        $x509 = new X509();
         $data = $x509->loadX509($result);
 
         $time = strtotime($data['tbsCertificate']['validity']['notAfter']['utcTime']);
         $hours = (int) round(($time - time()) / 3600);
 
         self::assertSame(24, $hours);
-        self::assertSame($issuerDn, $this->getRdnSequenceData($data['tbsCertificate']['issuer']));
-        self::assertSame($subjectDn, $this->getRdnSequenceData($data['tbsCertificate']['subject']));
+        self::assertSame($application->getIssuerDn(), $this->getRdnSequenceData($data['tbsCertificate']['issuer']));
+        self::assertSame($user->getSubjectDn(), $this->getRdnSequenceData($data['tbsCertificate']['subject']));
         self::assertSame('42', (string) $data['tbsCertificate']['serialNumber']);
     }
 
@@ -109,7 +72,10 @@ class SignedCertificateHandlerTest extends TestCase
         $handler->handle(
             $privateKey->toString('PKCS1'),
             'Le petit chien est sur la pente fatale.',
-            ['certificate' => 'foobar'],
+            [
+                'certificate' => 'foobar',
+                'clientPublicKey' => (new User())->getPublicKey(),
+            ],
         );
     }
 

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Tests\Proton\X509Sign;
+namespace Tests\Proton\X509Sign\Unit;
 
 use InvalidArgumentException;
 use phpseclib3\Crypt\RSA\PrivateKey;
@@ -62,6 +62,14 @@ class ServerTest extends TestCase
             public function callGetGroupedResponse(array $requests): array
             {
                 return iterator_to_array($this->getGroupedResponse($requests));
+            }
+
+            protected function getRequestResponse(string $id, $data): array
+            {
+                return [
+                    'success' => true,
+                    'result' => "result for $id",
+                ];
             }
         };
 

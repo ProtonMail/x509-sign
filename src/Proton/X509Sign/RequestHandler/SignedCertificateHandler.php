@@ -36,17 +36,32 @@ class SignedCertificateHandler implements RequestHandlerInterface
         /** @var PublicKey $clientPublicKey */
         $clientPublicKey = PublicKey::load($clientPublicKeyString);
 
+        $result = $this->reIssueCertificate($certificate, $privateKey, $clientPublicKey);
+
+        if (!$result) {
+            throw new RuntimeException('Unable to sign the CSR.');
+        }
+
+        return $result;
+    }
+
+    protected function reIssueCertificate(string $certificate, PrivateKey $issuerKey, PublicKey $subjectKey): ?string
+    {
         $x509 = new X509();
-        $x509->makeCA();
         $data = $x509->loadX509($certificate);
+
+        if (!isset($data['tbsCertificate'])) {
+            return null;
+        }
+
         $certificateData = $data['tbsCertificate'];
 
         $subject = new X509();
-        $subject->setPublicKey($clientPublicKey);
+        $subject->setPublicKey($subjectKey);
         $subject->setDN($x509->getSubjectDN());
 
         $issuer = new X509();
-        $issuer->setPrivateKey($privateKey);
+        $issuer->setPrivateKey($issuerKey);
         $issuer->setDN($x509->getIssuerDN());
 
         $authority = new X509();
@@ -64,13 +79,6 @@ class SignedCertificateHandler implements RequestHandlerInterface
             $authority->setExtension($id, $value, $critical);
         }
 
-
-        $result = $authority->saveX509($authority->sign($issuer, $subject));
-
-        if (!$result) {
-            throw new RuntimeException('Unable to sign the CSR.');
-        }
-
-        return $result;
+        return $authority->saveX509($authority->sign($issuer, $subject)) ?: null;
     }
 }

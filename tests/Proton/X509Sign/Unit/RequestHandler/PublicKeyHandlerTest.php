@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Tests\Proton\X509Sign\RequestHandler;
+namespace Tests\Proton\X509Sign\Unit\RequestHandler;
 
 use phpseclib3\Crypt\RSA\PrivateKey;
 use phpseclib3\Exception\NoKeyLoadedException;
