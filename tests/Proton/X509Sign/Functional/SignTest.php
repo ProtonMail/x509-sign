@@ -20,7 +20,7 @@ class SignTest extends TestCase
     {
         $alan = new User();
         $alanFavoriteService = new Application();
-        $signatureServer = new Server();
+        $signatureServer = new Server(null, null, json_encode([$alanFavoriteService->getExtension()]));
 
         $alan->use($alanFavoriteService);
         $alanFavoriteService->connectToSignatureServer($signatureServer);

@@ -10,7 +10,7 @@ use phpseclib3\Crypt\RSA\PublicKey;
 final class User
 {
     private array $subjectDn = [
-        'commonName' => 'Bob'
+        'commonName' => 'Alan'
     ];
 
     private PrivateKey $userKey;

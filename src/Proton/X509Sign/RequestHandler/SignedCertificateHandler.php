@@ -6,21 +6,29 @@ namespace Proton\X509Sign\RequestHandler;
 
 use phpseclib3\Crypt\RSA\PrivateKey;
 use phpseclib3\Crypt\RSA\PublicKey;
+use phpseclib3\File\ASN1;
 use phpseclib3\File\X509;
 use Proton\X509Sign\RequestHandlerInterface;
 use RuntimeException;
 
 class SignedCertificateHandler implements RequestHandlerInterface
 {
+    private array $extensions = [];
+
     /**
      * @param string $privateKey
      * @param string|null $privateKeyPassPhrase
+     * @param string|null $extensionsJsonString
      * @param array{certificate: string, clientPublicKey: string} $data
      *
      * @return string
      */
-    public function handle(string $privateKey, ?string $privateKeyPassPhrase, array $data): string
-    {
+    public function handle(
+        string $privateKey,
+        ?string $privateKeyPassPhrase = null,
+        ?string $extensionsJsonString = null,
+        array $data = []
+    ): string {
         /** @var PrivateKey $privateKey */
         $privateKey = PrivateKey::load($privateKey, $privateKeyPassPhrase ?? false);
 
@@ -35,6 +43,10 @@ class SignedCertificateHandler implements RequestHandlerInterface
 
         /** @var PublicKey $clientPublicKey */
         $clientPublicKey = PublicKey::load($clientPublicKeyString);
+
+        if ($extensionsJsonString) {
+            $this->loadExtensions(json_decode($extensionsJsonString, true));
+        }
 
         $result = $this->reIssueCertificate($certificate, $privateKey, $clientPublicKey);
 
@@ -74,11 +86,27 @@ class SignedCertificateHandler implements RequestHandlerInterface
             [
                 'extnId' => $id,
                 'extnValue' => $value,
-                'critical' => $critical,
             ] = $extension;
-            $authority->setExtension($id, $value, $critical);
+
+            if (isset($this->extensions[$id])) {
+                $authority->setExtensionValue($id, $value);
+            }
         }
 
         return $authority->saveX509($authority->sign($issuer, $subject)) ?: null;
+    }
+
+    protected function loadExtensions(array $extensions): void
+    {
+        $ids = [];
+
+        foreach ($extensions as [$name, $id, $structure]) {
+            $this->extensions[$name] = $id;
+            $ids[$name] = $id;
+
+            X509::registerExtension($name, $structure);
+        }
+
+        ASN1::loadOIDs($ids);
     }
 }

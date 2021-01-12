@@ -15,12 +15,14 @@ use Tests\Proton\X509Sign\Fixture\Application;
 use Tests\Proton\X509Sign\Fixture\User;
 
 /**
- * @covers \Proton\X509Sign\RequestHandler\SignedCertificateHandlerTest::handle
+ * @covers \Proton\X509Sign\RequestHandler\SignedCertificateHandler
  */
 class SignedCertificateHandlerTest extends TestCase
 {
     /**
      * @param string|null $passPhrase
+     *
+     * @covers ::handle
      *
      * @dataProvider getPassphrases
      */
@@ -40,6 +42,7 @@ class SignedCertificateHandlerTest extends TestCase
         $result = (new SignedCertificateHandler())->handle(
             $signServerPrivateKey->toString('PKCS1'),
             $passPhrase,
+            json_encode([$application->getExtension()]),
             [
                 'certificate' => $certificate,
                 'clientPublicKey' => $user->getPublicKey(),
@@ -60,6 +63,9 @@ class SignedCertificateHandlerTest extends TestCase
         self::assertSame('42', (string) $data['tbsCertificate']['serialNumber']);
     }
 
+    /**
+     * @covers ::handle
+     */
     public function testHandleIncorrectCertificate(): void
     {
         self::expectException(RuntimeException::class);
@@ -72,11 +78,40 @@ class SignedCertificateHandlerTest extends TestCase
         $handler->handle(
             $privateKey->toString('PKCS1'),
             'Le petit chien est sur la pente fatale.',
+            null,
             [
                 'certificate' => 'foobar',
                 'clientPublicKey' => (new User())->getPublicKey(),
             ],
         );
+    }
+
+    /**
+     * @covers ::reIssueCertificate
+     */
+    public function testReIssueCertificate()
+    {
+        $handler = new class () extends SignedCertificateHandler {
+            public function callReIssueCertificate(
+                string $certificate,
+                PrivateKey $issuerKey,
+                PublicKey $subjectKey
+            ): ?string {
+                return $this->reIssueCertificate($certificate, $issuerKey, $subjectKey);
+            }
+        };
+
+        self::assertNull($handler->callReIssueCertificate(
+            'foobar',
+            PrivateKey::createKey(),
+            PrivateKey::createKey()->getPublicKey(),
+        ));
+
+        self::assertNull($handler->callReIssueCertificate(
+            'foobar',
+            PrivateKey::createKey(),
+            PrivateKey::createKey()->getPublicKey(),
+        ));
     }
 
     /**
