@@ -30,6 +30,7 @@ class PublicKeyHandlerTest extends TestCase
         $result = $handler->handle(
             $privateKey->toString('PKCS8'),
             'Le petit chien est sur la pente fatale.',
+            null,
             ['format' => 'OpenSSH'],
         );
 
@@ -48,6 +49,7 @@ class PublicKeyHandlerTest extends TestCase
         $handler->handle(
             $privateKey->toString('PKCS8'),
             "Le code, c'est `Le Code` ?",
+            null,
             ['format' => 'OpenSSH'],
         );
     }
@@ -61,6 +63,7 @@ class PublicKeyHandlerTest extends TestCase
         $result = $handler->handle(
             PrivateKey::createKey()->withPassword('Correct')->toString('PKCS8'),
             'Correct',
+            null,
             ['format' => 'OpenSSH'],
         );
 

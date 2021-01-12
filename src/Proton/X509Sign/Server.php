@@ -21,10 +21,16 @@ class Server
 
     protected ?string $privateKeyPassPhrase;
 
-    public function __construct(?string $privateKey = null, ?string $privateKeyPassPhrase = null)
-    {
+    protected ?string $extensionsJsonString;
+
+    public function __construct(
+        ?string $privateKey = null,
+        ?string $privateKeyPassPhrase = null,
+        ?string $extensionsJsonString = null
+    ) {
         $this->privateKey = $privateKey ?? PrivateKey::createKey()->toString('PKCS1');
         $this->privateKeyPassPhrase = $privateKeyPassPhrase;
+        $this->extensionsJsonString = $extensionsJsonString;
     }
 
     /**
@@ -102,6 +108,7 @@ class Server
         return (new $handler())->handle(
             $this->privateKey,
             $this->privateKeyPassPhrase,
+            $this->extensionsJsonString,
             (array) $data,
         );
     }

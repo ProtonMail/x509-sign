@@ -12,12 +12,17 @@ class PublicKeyHandler implements RequestHandlerInterface
     /**
      * @param string $privateKey
      * @param string|null $privateKeyPassPhrase
+     * @param string|null $extensionsJsonString
      * @param array{format?: 'MSBLOB' | 'OpenSSH' | 'PXCS1' | 'PXCS18' | 'PSS' | 'PuTTY' | 'XML'} $data
      *
      * @return string
      */
-    public function handle(string $privateKey, ?string $privateKeyPassPhrase, array $data = []): string
-    {
+    public function handle(
+        string $privateKey,
+        ?string $privateKeyPassPhrase = null,
+        ?string $extensionsJsonString = null,
+        array $data = []
+    ): string {
         /** @var PrivateKey $privateKey */
         $privateKey = PrivateKey::load($privateKey, $privateKeyPassPhrase ?? false);
 
