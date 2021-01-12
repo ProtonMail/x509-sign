@@ -168,7 +168,12 @@ final class Application
         ];
     }
 
-    private function getFirstExtensionValue(array $data)
+    public function setUserData(string $name, array $data): void
+    {
+        $this->usersDatabase[$name] = array_merge($this->usersDatabase[$name], $data);
+    }
+
+    public function getFirstExtensionValue(array $data)
     {
         foreach ($data['tbsCertificate']['extensions'] as $extension) {
             if ($extension['extnId'] === self::NAME) {
