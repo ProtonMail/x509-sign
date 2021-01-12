@@ -5,13 +5,8 @@ declare(strict_types=1);
 namespace Tests\Proton\X509Sign\Unit;
 
 use InvalidArgumentException;
-use phpseclib3\Crypt\RSA\PrivateKey;
-use phpseclib3\Exception\NoKeyLoadedException;
-use PHPUnit\Framework\TestCase;
-use Proton\X509Sign\RequestHandler\PublicKeyHandler;
-use Proton\X509Sign\RequestHandler\SignedCertificateHandler;
 use Proton\X509Sign\Server;
-use ReflectionMethod;
+use Tests\Proton\X509Sign\TestCase;
 
 /**
  * @coversDefaultClass \Proton\X509Sign\Server

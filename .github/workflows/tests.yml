@@ -47,3 +47,5 @@ jobs:
 
       - name: Run test suite
         run: composer test
+        env:
+          COMPOSER_PROCESS_TIMEOUT: 0
