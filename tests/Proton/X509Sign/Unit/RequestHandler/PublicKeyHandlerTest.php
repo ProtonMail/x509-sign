@@ -6,8 +6,8 @@ namespace Tests\Proton\X509Sign\Unit\RequestHandler;
 
 use phpseclib3\Crypt\RSA\PrivateKey;
 use phpseclib3\Exception\NoKeyLoadedException;
-use PHPUnit\Framework\TestCase;
 use Proton\X509Sign\RequestHandler\PublicKeyHandler;
+use Tests\Proton\X509Sign\TestCase;
 
 /**
  * @covers \Proton\X509Sign\RequestHandler\PublicKeyHandler::handle

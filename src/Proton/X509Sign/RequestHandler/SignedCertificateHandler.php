@@ -6,14 +6,19 @@ namespace Proton\X509Sign\RequestHandler;
 
 use phpseclib3\Crypt\RSA\PrivateKey;
 use phpseclib3\Crypt\RSA\PublicKey;
-use phpseclib3\File\ASN1;
 use phpseclib3\File\X509;
+use Proton\X509Sign\Issuer;
 use Proton\X509Sign\RequestHandlerInterface;
 use RuntimeException;
 
 class SignedCertificateHandler implements RequestHandlerInterface
 {
-    private array $extensions = [];
+    protected Issuer $issuer;
+
+    public function __construct(?Issuer $issuer = null)
+    {
+        $this->issuer = $issuer ?? new Issuer();
+    }
 
     /**
      * @param string $privateKey
@@ -68,45 +73,32 @@ class SignedCertificateHandler implements RequestHandlerInterface
 
         $certificateData = $data['tbsCertificate'];
 
-        $subject = new X509();
-        $subject->setPublicKey($subjectKey);
-        $subject->setDN($x509->getSubjectDN());
+        return $this->issuer->issue(
+            $issuerKey,
+            $subjectKey,
+            $x509->getIssuerDN(),
+            $x509->getSubjectDN(),
+            (string) $certificateData['serialNumber'],
+            $certificateData['validity']['notBefore']['utcTime'],
+            $certificateData['validity']['notAfter']['utcTime'],
+            $this->getExtensionsValues($certificateData),
+        );
+    }
 
-        $issuer = new X509();
-        $issuer->setPrivateKey($issuerKey);
-        $issuer->setDN($x509->getIssuerDN());
-
-        $authority = new X509();
-        $authority->makeCA();
-        $authority->setSerialNumber((string) $certificateData['serialNumber'], 10);
-        $authority->setStartDate($certificateData['validity']['notBefore']['utcTime']);
-        $authority->setEndDate($certificateData['validity']['notAfter']['utcTime']);
-
+    protected function getExtensionsValues(array $certificateData): iterable
+    {
         foreach ($certificateData['extensions'] as $extension) {
             [
                 'extnId' => $id,
                 'extnValue' => $value,
             ] = $extension;
 
-            if (isset($this->extensions[$id])) {
-                $authority->setExtensionValue($id, $value);
-            }
+            yield $id => $value;
         }
-
-        return $authority->saveX509($authority->sign($issuer, $subject)) ?: null;
     }
 
     protected function loadExtensions(array $extensions): void
     {
-        $ids = [];
-
-        foreach ($extensions as [$name, $id, $structure]) {
-            $this->extensions[$name] = $id;
-            $ids[$name] = $id;
-
-            X509::registerExtension($name, $structure);
-        }
-
-        ASN1::loadOIDs($ids);
+        $this->issuer->loadExtensions($extensions);
     }
 }

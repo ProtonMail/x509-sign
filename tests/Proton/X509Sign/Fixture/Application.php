@@ -173,7 +173,7 @@ final class Application
         $this->usersDatabase[$name] = array_merge($this->usersDatabase[$name], $data);
     }
 
-    public function getFirstExtensionValue(array $data)
+    private function getFirstExtensionValue(array $data)
     {
         foreach ($data['tbsCertificate']['extensions'] as $extension) {
             if ($extension['extnId'] === self::NAME) {

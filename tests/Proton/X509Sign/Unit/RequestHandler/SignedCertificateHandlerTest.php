@@ -9,12 +9,13 @@ use phpseclib3\Crypt\RSA\PrivateKey;
 use phpseclib3\Crypt\RSA\PublicKey;
 use phpseclib3\File\ASN1;
 use phpseclib3\File\X509;
-use PHPUnit\Framework\TestCase;
+use Proton\X509Sign\Issuer;
 use Proton\X509Sign\RequestHandler\SignedCertificateHandler;
 use ReflectionProperty;
 use RuntimeException;
 use Tests\Proton\X509Sign\Fixture\Application;
 use Tests\Proton\X509Sign\Fixture\User;
+use Tests\Proton\X509Sign\TestCase;
 
 /**
  * @coversDefaultClass \Proton\X509Sign\RequestHandler\SignedCertificateHandler
@@ -53,16 +54,27 @@ class SignedCertificateHandlerTest extends TestCase
 
         self::assertNotSame($certificate, $result);
 
-        $x509 = new X509();
-        $data = $x509->loadX509($result);
-
-        $time = strtotime($data['tbsCertificate']['validity']['notAfter']['utcTime']);
-        $hours = (int) round(($time - time()) / 3600);
+        [
+            'hours' => $hours,
+            'issuer' => $issuer,
+            'subject' => $subject,
+            'serialNumber' => $serialNumber,
+        ] = $this->getCertificateData($result);
 
         self::assertSame(24, $hours);
-        self::assertSame($application->getIssuerDn(), $this->getRdnSequenceData($data['tbsCertificate']['issuer']));
-        self::assertSame($user->getSubjectDn(), $this->getRdnSequenceData($data['tbsCertificate']['subject']));
-        self::assertSame('42', (string) $data['tbsCertificate']['serialNumber']);
+        self::assertSame($application->getIssuerDn(), $issuer);
+        self::assertSame($user->getSubjectDn(), $subject);
+        self::assertSame('42', $serialNumber);
+    }
+
+    /**
+     * @psalm-return Generator<?string[]>
+     */
+    public function getPassphrases(): Generator
+    {
+        // TODO: Support passphrases
+        // yield ['Le petit chien est sur la pente fatale.'];
+        yield [null];
     }
 
     /**
@@ -137,9 +149,7 @@ class SignedCertificateHandlerTest extends TestCase
 
         self::assertIsString($reIssuedCertificate);
 
-        $x509 = new X509();
-        $data = $x509->loadX509($reIssuedCertificate);
-        $extension = $application->getFirstExtensionValue($data);
+        $extension = $this->getCertificateData($reIssuedCertificate)['extensions']['super'];
 
         self::assertSame('12', (string) $extension['level']);
     }
@@ -183,32 +193,27 @@ class SignedCertificateHandlerTest extends TestCase
     }
 
     /**
-     * @psalm-return Generator<?string[]>
+     * @covers ::__construct
      */
-    public function getPassphrases(): Generator
+    public function testConstructor(): void
     {
-        // TODO: Support passphrases
-        // yield ['Le petit chien est sur la pente fatale.'];
-        yield [null];
-    }
+        $handler = new class () extends SignedCertificateHandler {
+            public function getIssuer(): Issuer
+            {
+                return $this->issuer;
+            }
+        };
 
-    private function getRdnSequenceData(array $sequence): array
-    {
-        $dnCopy = [];
+        self::assertInstanceOf(Issuer::class, $handler->getIssuer());
 
-        foreach (($sequence['rdnSequence'] ?? $sequence) as $item) {
-            /**
-             * @var string $type
-             * @var string $value
-             */
-            ['type' => $type, 'value' => ['utf8String' => $value]] = $item[0];
+        $issuer = new Issuer();
+        $handler = new class ($issuer) extends SignedCertificateHandler {
+            public function getIssuer(): Issuer
+            {
+                return $this->issuer;
+            }
+        };
 
-            // Ignore namespace prefix
-            $type = preg_replace('/^.*-at-/U', '', $type);
-
-            $dnCopy[$type] = $value;
-        }
-
-        return $dnCopy;
+        self::assertSame($issuer, $handler->getIssuer());
     }
 }

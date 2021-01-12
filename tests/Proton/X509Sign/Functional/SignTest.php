@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Tests\Proton\X509Sign\Functional;
 
-use PHPUnit\Framework\TestCase;
 use Proton\X509Sign\Server;
 use Tests\Proton\X509Sign\Fixture\Application;
 use Tests\Proton\X509Sign\Fixture\User;
+use Tests\Proton\X509Sign\TestCase;
 
 class SignTest extends TestCase
 {
