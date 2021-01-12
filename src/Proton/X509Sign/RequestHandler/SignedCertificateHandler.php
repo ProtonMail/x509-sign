@@ -87,7 +87,7 @@ class SignedCertificateHandler implements RequestHandlerInterface
 
     protected function getExtensionsValues(array $certificateData): iterable
     {
-        foreach ($certificateData['extensions'] as $extension) {
+        foreach (($certificateData['extensions'] ?? []) as $extension) {
             [
                 'extnId' => $id,
                 'extnValue' => $value,

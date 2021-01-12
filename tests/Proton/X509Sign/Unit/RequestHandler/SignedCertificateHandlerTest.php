@@ -23,6 +23,31 @@ use Tests\Proton\X509Sign\TestCase;
 class SignedCertificateHandlerTest extends TestCase
 {
     /**
+     * @covers ::__construct
+     */
+    public function testConstructor(): void
+    {
+        $handler = new class () extends SignedCertificateHandler {
+            public function getIssuer(): Issuer
+            {
+                return $this->issuer;
+            }
+        };
+
+        self::assertInstanceOf(Issuer::class, $handler->getIssuer());
+
+        $issuer = new Issuer();
+        $handler = new class ($issuer) extends SignedCertificateHandler {
+            public function getIssuer(): Issuer
+            {
+                return $this->issuer;
+            }
+        };
+
+        self::assertSame($issuer, $handler->getIssuer());
+    }
+
+    /**
      * @param string|null $passPhrase
      *
      * @covers ::handle
@@ -193,27 +218,34 @@ class SignedCertificateHandlerTest extends TestCase
     }
 
     /**
-     * @covers ::__construct
+     * @covers ::getExtensionsValues
      */
-    public function testConstructor(): void
+    public function testGetExtensionsValues(): void
     {
         $handler = new class () extends SignedCertificateHandler {
-            public function getIssuer(): Issuer
+            public function callGetExtensionsValues(array $certificateData): array
             {
-                return $this->issuer;
+                return iterator_to_array($this->getExtensionsValues($certificateData));
             }
         };
 
-        self::assertInstanceOf(Issuer::class, $handler->getIssuer());
-
-        $issuer = new Issuer();
-        $handler = new class ($issuer) extends SignedCertificateHandler {
-            public function getIssuer(): Issuer
-            {
-                return $this->issuer;
-            }
-        };
-
-        self::assertSame($issuer, $handler->getIssuer());
+        self::assertSame([], $handler->callGetExtensionsValues([]));
+        self::assertSame([
+            'first' => 1,
+            'second' => [2 => 2],
+        ], $handler->callGetExtensionsValues([
+            'extensions' => [
+                [
+                    'extnId' => 'first',
+                    'extnValue' => 1,
+                    'critical' => false,
+                ],
+                [
+                    'extnId' => 'second',
+                    'extnValue' => [2 => 2],
+                    'critical' => true,
+                ],
+            ],
+        ]));
     }
 }
