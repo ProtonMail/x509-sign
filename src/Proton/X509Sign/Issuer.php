@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Proton\X509Sign;
 
+use DateTimeInterface;
 use phpseclib3\Crypt\RSA\PrivateKey;
 use phpseclib3\Crypt\RSA\PublicKey;
 use phpseclib3\File\ASN1;
@@ -13,6 +14,68 @@ class Issuer
 {
     protected array $extensions = [];
 
+    /**
+     * Issue a certificate.
+     *
+     * @param PrivateKey $issuerKey
+     * @param PublicKey $subjectKey
+     * @param array{
+     *     countryName?: string,
+     *     organizationName?: string,
+     *     dnQualifier?: string,?: string,
+     *     commonName?: string,
+     *     state?: string,
+     *     province?: string,
+     *     provincename?: string,
+     *     localityName?: string,
+     *     emailAddress?: string,
+     *     serialNumber?: string,
+     *     postalCode?: string,
+     *     streetAddress?: string,
+     *     name?: string,
+     *     givenName?: string,
+     *     surname?: string,
+     *     initials?: string,
+     *     generationQualifier?: string,
+     *     organizationalUnitName?: string,
+     *     pseudonym?: string,
+     *     title?: string,
+     *     description?: string,
+     *     role?: string,
+     *     uniqueidentifier?: string,
+     * } $issuerDn
+     * @param array{
+     *     countryName?: string,
+     *     organizationName?: string,
+     *     dnQualifier?: string,?: string,
+     *     commonName?: string,
+     *     state?: string,
+     *     province?: string,
+     *     provincename?: string,
+     *     localityName?: string,
+     *     emailAddress?: string,
+     *     serialNumber?: string,
+     *     postalCode?: string,
+     *     streetAddress?: string,
+     *     name?: string,
+     *     givenName?: string,
+     *     surname?: string,
+     *     initials?: string,
+     *     generationQualifier?: string,
+     *     organizationalUnitName?: string,
+     *     pseudonym?: string,
+     *     title?: string,
+     *     description?: string,
+     *     role?: string,
+     *     uniqueidentifier?: string,
+     * } $subjectDn
+     * @param string|null $serialNumber
+     * @param DateTimeInterface|string|null $startDate
+     * @param DateTimeInterface|string|null $endDate
+     * @param iterable|array $extensions
+     *
+     * @return string|null
+     */
     public function issue(
         PrivateKey $issuerKey,
         PublicKey $subjectKey,
@@ -55,17 +118,24 @@ class Issuer
         return $authority->saveX509($authority->sign($issuer, $subject)) ?: null;
     }
 
-    public function loadExtensions(array $extensions): void
+    /**
+     * Load extensions.
+     *
+     * Each extension must be an array with in order: id/name, oID, and structure.
+     *
+     * @param iterable<array{string, string, array}> $extensions List of array-definitions.
+     */
+    public function loadExtensions(iterable $extensions): void
     {
-        $ids = [];
+        $oids = [];
 
-        foreach ($extensions as [$name, $id, $structure]) {
-            $this->extensions[$name] = $id;
-            $ids[$name] = $id;
+        foreach ($extensions as [$id, $oID, $structure]) {
+            $this->extensions[$id] = $oID;
+            $oids[$id] = $oID;
 
-            X509::registerExtension($name, $structure);
+            X509::registerExtension($id, $structure);
         }
 
-        ASN1::loadOIDs($ids);
+        ASN1::loadOIDs($oids);
     }
 }
