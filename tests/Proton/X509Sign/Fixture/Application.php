@@ -10,6 +10,7 @@ use phpseclib3\File\ASN1;
 use phpseclib3\File\X509;
 use Proton\Apps\VPN\Contract\ClientCertificateInterface;
 use Proton\X509Sign\Server;
+use ReflectionProperty;
 
 /**
  * Application class represents a separated application using the signature endpoint
@@ -194,7 +195,11 @@ final class Application
     private function unloadASN1Extension(): void
     {
         ASN1::loadOIDs([self::NAME => 'disabled']);
-        X509::registerExtension(self::NAME, []);
+        $extensionsReflector = new ReflectionProperty(X509::class, 'extensions');
+        $extensionsReflector->setAccessible(true);
+        $extensions = $extensionsReflector->getValue();
+        unset($extensions[self::NAME]);
+        $extensionsReflector->setValue($extensions);
     }
 
     private function getSignatureServerPublicKey(): string

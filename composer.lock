@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "40a0231bc99d07a53d0f7c6d767d1594",
+    "content-hash": "9bed32b2eb2aef35aa523a09ecaf3eae",
     "packages": [
         {
             "name": "paragonie/constant_time_encoding",
@@ -129,16 +129,16 @@
         },
         {
             "name": "phpseclib/phpseclib",
-            "version": "3.1.0-beta.1",
+            "version": "3.0.3",
             "source": {
                 "type": "git",
-                "url": "https://github.com/kylekatarnls/phpseclib.git",
-                "reference": "9b8564177b4e7a869c942582c362e31fb34d7199"
+                "url": "https://github.com/phpseclib/phpseclib.git",
+                "reference": "97a5a270e4a9ebfc1a7e2f462e917cbce1a8e6d9"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/kylekatarnls/phpseclib/zipball/9b8564177b4e7a869c942582c362e31fb34d7199",
-                "reference": "9b8564177b4e7a869c942582c362e31fb34d7199",
+                "url": "https://api.github.com/repos/phpseclib/phpseclib/zipball/97a5a270e4a9ebfc1a7e2f462e917cbce1a8e6d9",
+                "reference": "97a5a270e4a9ebfc1a7e2f462e917cbce1a8e6d9",
                 "shasum": ""
             },
             "require": {
@@ -166,6 +166,7 @@
                     "phpseclib3\\": "phpseclib/"
                 }
             },
+            "notification-url": "https://packagist.org/downloads/",
             "license": [
                 "MIT"
             ],
@@ -218,23 +219,24 @@
                 "x509"
             ],
             "support": {
-                "source": "https://github.com/kylekatarnls/phpseclib/tree/3.1.0-beta.1"
+                "issues": "https://github.com/phpseclib/phpseclib/issues",
+                "source": "https://github.com/phpseclib/phpseclib/tree/3.0.3"
             },
             "funding": [
                 {
-                    "type": "github",
-                    "url": "https://github.com/terrafrost"
+                    "url": "https://github.com/terrafrost",
+                    "type": "github"
                 },
                 {
-                    "type": "patreon",
-                    "url": "https://www.patreon.com/phpseclib"
+                    "url": "https://www.patreon.com/phpseclib",
+                    "type": "patreon"
                 },
                 {
-                    "type": "tidelift",
-                    "url": "https://tidelift.com/funding/github/packagist/phpseclib/phpseclib"
+                    "url": "https://tidelift.com/funding/github/packagist/phpseclib/phpseclib",
+                    "type": "tidelift"
                 }
             ],
-            "time": "2021-01-08T16:09:59+00:00"
+            "time": "2021-01-16T17:35:19+00:00"
         }
     ],
     "packages-dev": [
@@ -1077,16 +1079,16 @@
         },
         {
             "name": "phpunit/phpunit",
-            "version": "9.5.0",
+            "version": "9.5.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/sebastianbergmann/phpunit.git",
-                "reference": "8e16c225d57c3d6808014df6b1dd7598d0a5bbbe"
+                "reference": "e7bdf4085de85a825f4424eae52c99a1cec2f360"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/sebastianbergmann/phpunit/zipball/8e16c225d57c3d6808014df6b1dd7598d0a5bbbe",
-                "reference": "8e16c225d57c3d6808014df6b1dd7598d0a5bbbe",
+                "url": "https://api.github.com/repos/sebastianbergmann/phpunit/zipball/e7bdf4085de85a825f4424eae52c99a1cec2f360",
+                "reference": "e7bdf4085de85a825f4424eae52c99a1cec2f360",
                 "shasum": ""
             },
             "require": {
@@ -1164,7 +1166,7 @@
             ],
             "support": {
                 "issues": "https://github.com/sebastianbergmann/phpunit/issues",
-                "source": "https://github.com/sebastianbergmann/phpunit/tree/9.5.0"
+                "source": "https://github.com/sebastianbergmann/phpunit/tree/9.5.1"
             },
             "funding": [
                 {
@@ -1176,7 +1178,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2020-12-04T05:05:53+00:00"
+            "time": "2021-01-17T07:42:25+00:00"
         },
         {
             "name": "sebastian/cli-parser",
@@ -2327,13 +2329,12 @@
     ],
     "aliases": [],
     "minimum-stability": "dev",
-    "stability-flags": {
-        "phpseclib/phpseclib": 10
-    },
+    "stability-flags": [],
     "prefer-stable": true,
     "prefer-lowest": false,
     "platform": {
-        "php": ">=7.4"
+        "php": ">=7.4",
+        "ext-json": "*"
     },
     "platform-dev": [],
     "plugin-api-version": "2.0.0"

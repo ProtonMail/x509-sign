@@ -11,12 +11,6 @@
         "test": "phpunit --verbose",
         "coverage": "phpunit --coverage-text --coverage-html=coverage --coverage-clover=coverage.xml"
     },
-    "repositories": [
-        {
-            "type": "vcs",
-            "url":  "https://github.com/kylekatarnls/phpseclib.git"
-        }
-    ],
     "autoload": {
         "psr-4": {
             "": "src/"
@@ -30,7 +24,7 @@
     "require": {
         "php": ">=7.4",
         "ext-json": "*",
-        "phpseclib/phpseclib": "^3.1@beta"
+        "phpseclib/phpseclib": "^3.0.3"
     },
     "require-dev": {
         "phpunit/phpunit": "^9.5"
