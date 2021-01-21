@@ -6,11 +6,8 @@ namespace Tests\Proton\X509Sign\Fixture;
 
 use phpseclib3\Crypt\RSA\PrivateKey;
 use phpseclib3\Crypt\RSA\PublicKey;
-use phpseclib3\File\ASN1;
 use phpseclib3\File\X509;
-use Proton\Apps\VPN\Contract\ClientCertificateInterface;
 use Proton\X509Sign\Server;
-use ReflectionProperty;
 
 /**
  * Application class represents a separated application using the signature endpoint
@@ -18,6 +15,8 @@ use ReflectionProperty;
  */
 final class Application
 {
+    use SharedExtension;
+
     public const NAME = 'super';
 
     private array $issuerDn = [
@@ -106,10 +105,11 @@ final class Application
 
     public function connectToSignatureServer(Server $signatureServer): void
     {
+        $this->signatureServerPublicKey = null;
         $this->signatureServer = $signatureServer;
     }
 
-    public function askForSignature(): void
+    public function getSignedCertificate(): ?string
     {
         $response = $this->postJson([
             'signedCertificate' => [
@@ -119,11 +119,23 @@ final class Application
         ]);
 
         if (!($response['signedCertificate']['success'] ?? false)) {
-            return;
+            return null;
         }
 
         /** @var string $certificate */
         $certificate = $response['signedCertificate']['result'];
+
+        return $certificate;
+    }
+
+    public function askForSignature(): void
+    {
+        /** @var string $certificate */
+        $certificate = $this->getSignedCertificate();
+
+        if (!$certificate) {
+            return;
+        }
 
         $this->currentUser->receiveCertificate($certificate);
 
@@ -150,25 +162,6 @@ final class Application
         return $this->satisfied;
     }
 
-    /**
-     * @return array{string, string, array}
-     */
-    public function getExtension(): array
-    {
-        return [
-            self::NAME,
-            '2.16.840.1.101.3.4.2.99',
-            [
-                'type' => ASN1::TYPE_SEQUENCE,
-                'children' => [
-                    'cool' => ['type' => ASN1::TYPE_BOOLEAN],
-                    'level' => ['type' => ASN1::TYPE_INTEGER],
-                    'name' => ['type' => ASN1::TYPE_OCTET_STRING],
-                ],
-            ],
-        ];
-    }
-
     public function setUserData(string $name, array $data): void
     {
         $this->usersDatabase[$name] = array_merge($this->usersDatabase[$name], $data);
@@ -183,23 +176,6 @@ final class Application
         }
 
         return null;
-    }
-
-    private function loadASN1Extension(): void
-    {
-        [$name, $id, $structure] = $this->getExtension();
-        ASN1::loadOIDs([$name => $id]);
-        X509::registerExtension($name, $structure);
-    }
-
-    private function unloadASN1Extension(): void
-    {
-        ASN1::loadOIDs([self::NAME => 'disabled']);
-        $extensionsReflector = new ReflectionProperty(X509::class, 'extensions');
-        $extensionsReflector->setAccessible(true);
-        $extensions = $extensionsReflector->getValue();
-        unset($extensions[self::NAME]);
-        $extensionsReflector->setValue($extensions);
     }
 
     private function getSignatureServerPublicKey(): string
