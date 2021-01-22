@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Tests\Proton\X509Sign\Functional;
 
-use phpseclib3\File\X509;
 use Proton\X509Sign\Server;
 use Tests\Proton\X509Sign\Fixture\Application;
 use Tests\Proton\X509Sign\Fixture\ThirdParty;
