@@ -35,6 +35,36 @@ POST /
 }
 ```
 
+You can group requests and get both results aggregated:
+
+```
+POST /
+{
+  "publicKey": {}
+  "signedCertificate": {
+    "certificate": "-----BEGIN...",
+    "clientPublicKey": "-----BEGIN..."
+  }
+}
+```
+
+Would result the following JSON output:
+
+```
+{
+  "publicKey": {
+    "success": true,
+    "result": "-----BEGIN..."
+  }
+  "signedCertificate": {
+    "success": true,
+    "result": "-----BEGIN..."
+  }
+}
+```
+
+With the server signature public key string and the signed certificate.
+
 ### As a service
 
 Use `Issuer::issue()` to sign certificates from a PHP application.
