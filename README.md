@@ -69,6 +69,21 @@ With the server signature public key string and the signed certificate.
 
 Use `Issuer::issue()` to sign certificates from a PHP application.
 
+```php
+use Proton\X509Sign\Issuer;
+use phpseclib3\Crypt\RSA\PrivateKey;
+use phpseclib3\Crypt\RSA\PublicKey;
+
+$issuer = new Issuer();
+$issuer->issue(
+    PrivateKey::load('-----BEGIN...'),
+    PublicKey::load('-----BEGIN...'),
+    ['commonName' => 'foo'],
+    ['commonName' => 'bar'],
+    '9256'
+);
+```
+
 ## Config
 
 Define environment variables to configure your server:
