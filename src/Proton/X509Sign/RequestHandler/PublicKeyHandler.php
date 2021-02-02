@@ -13,7 +13,7 @@ class PublicKeyHandler implements RequestHandlerInterface
      * @param string $privateKey
      * @param string|null $privateKeyPassPhrase
      * @param string|null $extensionsJsonString
-     * @param array{format?: 'MSBLOB' | 'OpenSSH' | 'PXCS1' | 'PXCS18' | 'PSS' | 'PuTTY' | 'XML'} $data
+     * @param array{format?: 'MSBLOB' | 'OpenSSH' | 'PKCS1' | 'PKCS8' | 'PSS' | 'PuTTY' | 'XML'} $data
      *
      * @return string
      */
