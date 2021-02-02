@@ -80,7 +80,7 @@ $issuer->issue(
     PublicKey::load('-----BEGIN...'),
     ['commonName' => 'foo'],
     ['commonName' => 'bar'],
-    '9256'
+    '9256',
 );
 ```
 
