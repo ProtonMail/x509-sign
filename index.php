@@ -19,5 +19,5 @@ header('Content-type: application/json');
     getenv('SIGNATURE_PRIVATE_KEY_PASSPHRASE') ?: null,
     getenv('EXTENSIONS') ?: null,
 ))->handleRequests(
-    json_decode(file_get_contents('php://input') ?: '{}', true) ?: [],
+    json_decode(file_get_contents('php://input') ?: '{}', true, 512, JSON_THROW_ON_ERROR) ?: [],
 );

@@ -109,7 +109,7 @@ class Server
             $this->privateKey,
             $this->privateKeyPassPhrase,
             $this->extensionsJsonString,
-            (array) $data,
+            $data,
         );
     }
 }
