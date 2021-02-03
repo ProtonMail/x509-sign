@@ -11,7 +11,7 @@ use Proton\X509Sign\Issuer;
 use Proton\X509Sign\RequestHandlerInterface;
 use RuntimeException;
 
-class SignedCertificateHandler implements RequestHandlerInterface
+final class SignedCertificateHandler implements RequestHandlerInterface
 {
     protected Issuer $issuer;
 

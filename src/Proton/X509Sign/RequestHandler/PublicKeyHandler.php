@@ -7,7 +7,7 @@ namespace Proton\X509Sign\RequestHandler;
 use phpseclib3\Crypt\RSA\PrivateKey;
 use Proton\X509Sign\RequestHandlerInterface;
 
-class PublicKeyHandler implements RequestHandlerInterface
+final class PublicKeyHandler implements RequestHandlerInterface
 {
     /**
      * @param string $privateKey
