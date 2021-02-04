@@ -11,5 +11,5 @@ interface RequestHandlerInterface
         ?string $privateKeyPassPhrase,
         ?string $extensionsJsonString,
         array $data
-    );
+    ): string;
 }
