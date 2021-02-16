@@ -11,7 +11,6 @@ class TestCase extends TestCaseBase
 {
     /**
      * @param string $certificate
-     *
      * @return array{
      *     hours: int,
      *     issuer: array,

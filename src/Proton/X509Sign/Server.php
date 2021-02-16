@@ -55,7 +55,6 @@ class Server
 
     /**
      * @param array[] $requests
-     *
      * @return iterable<string>
      */
     protected function getGroupedResponse(array $requests): iterable
@@ -75,7 +74,6 @@ class Server
     /**
      * @param string $id
      * @param mixed $data
-     *
      * @return array{success: bool, error?: string, result?: mixed}
      */
     protected function getRequestResponse(string $id, $data): array

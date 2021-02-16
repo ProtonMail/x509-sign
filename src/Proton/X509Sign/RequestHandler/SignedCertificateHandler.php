@@ -25,7 +25,6 @@ final class SignedCertificateHandler implements RequestHandlerInterface
      * @param string|null $privateKeyPassPhrase
      * @param string|null $extensionsJsonString
      * @param array{certificate: string, clientPublicKey: string} $data
-     *
      * @return string
      */
     public function handle(

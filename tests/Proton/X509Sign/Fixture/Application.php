@@ -193,7 +193,6 @@ final class Application
 
     /**
      * @param array<string, array> $requests
-     *
      * @return array<string, array{success: bool, error?: string, result?: mixed}>
      */
     private function postJson(array $requests): array

@@ -73,7 +73,6 @@ class Issuer
      * @param DateTimeInterface|string|null $startDate
      * @param DateTimeInterface|string|null $endDate
      * @param iterable|array $extensions
-     *
      * @return string|null
      */
     public function issue(

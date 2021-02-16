@@ -14,7 +14,6 @@ final class PublicKeyHandler implements RequestHandlerInterface
      * @param string|null $privateKeyPassPhrase
      * @param string|null $extensionsJsonString
      * @param array{format?: 'MSBLOB' | 'OpenSSH' | 'PKCS1' | 'PKCS8' | 'PSS' | 'PuTTY' | 'XML'} $data
-     *
      * @return string
      */
     public function handle(
