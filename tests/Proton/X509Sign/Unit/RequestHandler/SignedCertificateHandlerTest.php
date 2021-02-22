@@ -27,24 +27,14 @@ class SignedCertificateHandlerTest extends TestCase
      */
     public function testConstructor(): void
     {
-        $handler = new class () extends SignedCertificateHandler {
-            public function getIssuer(): Issuer
-            {
-                return $this->issuer;
-            }
-        };
+        $property = new ReflectionProperty(SignedCertificateHandler::class, 'issuer');
+        $property->setAccessible(true);
 
-        self::assertInstanceOf(Issuer::class, $handler->getIssuer());
+        self::assertInstanceOf(Issuer::class, $property->getValue(new SignedCertificateHandler()));
 
         $issuer = new Issuer();
-        $handler = new class ($issuer) extends SignedCertificateHandler {
-            public function getIssuer(): Issuer
-            {
-                return $this->issuer;
-            }
-        };
 
-        self::assertSame($issuer, $handler->getIssuer());
+        self::assertSame($issuer, $property->getValue(new SignedCertificateHandler($issuer)));
     }
 
     /**
