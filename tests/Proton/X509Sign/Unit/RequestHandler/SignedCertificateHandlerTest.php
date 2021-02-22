@@ -11,6 +11,7 @@ use phpseclib3\File\ASN1;
 use phpseclib3\File\X509;
 use Proton\X509Sign\Issuer;
 use Proton\X509Sign\RequestHandler\SignedCertificateHandler;
+use ReflectionMethod;
 use ReflectionProperty;
 use RuntimeException;
 use Tests\Proton\X509Sign\Fixture\Application;
@@ -27,24 +28,14 @@ class SignedCertificateHandlerTest extends TestCase
      */
     public function testConstructor(): void
     {
-        $handler = new class () extends SignedCertificateHandler {
-            public function getIssuer(): Issuer
-            {
-                return $this->issuer;
-            }
-        };
+        $property = new ReflectionProperty(SignedCertificateHandler::class, 'issuer');
+        $property->setAccessible(true);
 
-        self::assertInstanceOf(Issuer::class, $handler->getIssuer());
+        self::assertInstanceOf(Issuer::class, $property->getValue(new SignedCertificateHandler()));
 
         $issuer = new Issuer();
-        $handler = new class ($issuer) extends SignedCertificateHandler {
-            public function getIssuer(): Issuer
-            {
-                return $this->issuer;
-            }
-        };
 
-        self::assertSame($issuer, $handler->getIssuer());
+        self::assertSame($issuer, $property->getValue(new SignedCertificateHandler($issuer)));
     }
 
     /**
@@ -130,21 +121,27 @@ class SignedCertificateHandlerTest extends TestCase
      */
     public function testReIssueCertificate()
     {
-        $handler = new class () extends SignedCertificateHandler {
-            public function callReIssueCertificate(
-                Application $application,
-                string $certificate,
-                PrivateKey $issuerKey,
-                PublicKey $subjectKey
-            ): ?string {
-                $this->loadExtensions([$application->getExtension()]);
+        $handler = new SignedCertificateHandler();
 
-                return $this->reIssueCertificate($certificate, $issuerKey, $subjectKey);
-            }
+        $callReIssueCertificate = function (
+            Application $application,
+            string $certificate,
+            PrivateKey $issuerKey,
+            PublicKey $subjectKey
+        ) use ($handler) {
+            $loadExtensions = new ReflectionMethod(SignedCertificateHandler::class, 'loadExtensions');
+            $loadExtensions->setAccessible(true);
+            $loadExtensions->invoke($handler, [$application->getExtension()]);
+
+            $reIssueCertificate = new ReflectionMethod(SignedCertificateHandler::class, 'reIssueCertificate');
+            $reIssueCertificate->setAccessible(true);
+
+            return $reIssueCertificate->invoke($handler, $certificate, $issuerKey, $subjectKey);
         };
+
         $application = new Application();
 
-        self::assertNull($handler->callReIssueCertificate(
+        self::assertNull($callReIssueCertificate(
             $application,
             'foobar',
             PrivateKey::createKey(),
@@ -165,7 +162,7 @@ class SignedCertificateHandlerTest extends TestCase
         /** @var PublicKey $userPublicKey */
         $userPublicKey = PublicKey::load($user->getPublicKey());
 
-        $reIssuedCertificate = $handler->callReIssueCertificate(
+        $reIssuedCertificate = $callReIssueCertificate(
             $application,
             $certificate,
             $signServerPrivateKey,
@@ -184,14 +181,10 @@ class SignedCertificateHandlerTest extends TestCase
      */
     public function testLoadExtensions()
     {
-        $handler = new class () extends SignedCertificateHandler {
-            public function callLoadExtensions(array $extensions): void
-            {
-                $this->loadExtensions($extensions);
-            }
-        };
-
-        $handler->callLoadExtensions([
+        $handler = new SignedCertificateHandler();
+        $loadExtensions = new ReflectionMethod(SignedCertificateHandler::class, 'loadExtensions');
+        $loadExtensions->setAccessible(true);
+        $loadExtensions->invoke($handler, [
             [
                 'my-id',
                 'my-code',
@@ -222,18 +215,18 @@ class SignedCertificateHandlerTest extends TestCase
      */
     public function testGetExtensionsValues(): void
     {
-        $handler = new class () extends SignedCertificateHandler {
-            public function callGetExtensionsValues(array $certificateData): array
-            {
-                return iterator_to_array($this->getExtensionsValues($certificateData));
-            }
+        $handler = new SignedCertificateHandler();
+        $getExtensionsValues = new ReflectionMethod(SignedCertificateHandler::class, 'getExtensionsValues');
+        $getExtensionsValues->setAccessible(true);
+        $callGetExtensionsValues = function (array $certificateData) use ($handler, $getExtensionsValues): array {
+            return iterator_to_array($getExtensionsValues->invoke($handler, $certificateData));
         };
 
-        self::assertSame([], $handler->callGetExtensionsValues([]));
+        self::assertSame([], $callGetExtensionsValues([]));
         self::assertSame([
             'first' => 1,
             'second' => [2 => 2],
-        ], $handler->callGetExtensionsValues([
+        ], $callGetExtensionsValues([
             'extensions' => [
                 [
                     'extnId' => 'first',
