@@ -136,6 +136,32 @@ class ServerTest extends TestCase
         $result = str_replace("\r", '', $result);
 
         self::assertMatchesRegularExpression(
+            '/^-----BEGIN PUBLIC KEY-----\n[\s\S]+\n-----END PUBLIC KEY-----$/',
+            $result,
+        );
+    }
+
+    /**
+     * @covers ::executeHandler
+     */
+    public function testExecuteHandlerPKCS1(): void
+    {
+        $server = new class() extends Server {
+            public function callExecuteHandler(string $id, $data)
+            {
+                return $this->executeHandler($id, $data);
+            }
+        };
+
+        $result = $server->callExecuteHandler('publicKey', [
+            'format' => 'PKCS1',
+        ]);
+
+        self::assertIsString($result);
+
+        $result = str_replace("\r", '', $result);
+
+        self::assertMatchesRegularExpression(
             '/^-----BEGIN RSA PUBLIC KEY-----\n[\s\S]+\n-----END RSA PUBLIC KEY-----$/',
             $result,
         );
