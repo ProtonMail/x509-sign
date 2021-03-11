@@ -21,11 +21,11 @@ class PublicKeyHandlerTest extends TestCase
         $privateKey = PrivateKey::createKey()->withPassword('Le petit chien est sur la pente fatale.');
 
         $result = $handler->handle(
-            $privateKey->toString('PKCS1'),
+            $privateKey->toString('PKCS8'),
             'Le petit chien est sur la pente fatale.',
         );
 
-        self::assertSame($privateKey->getPublicKey()->toString('PKCS1'), $result);
+        self::assertSame($privateKey->getPublicKey()->toString('PKCS8'), $result);
 
         $result = $handler->handle(
             $privateKey->toString('PKCS8'),

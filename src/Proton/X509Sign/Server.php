@@ -28,7 +28,7 @@ class Server
         ?string $privateKeyPassPhrase = null,
         ?string $extensionsJsonString = null
     ) {
-        $this->privateKey = $privateKey ?? PrivateKey::createKey()->toString('PKCS1');
+        $this->privateKey = $privateKey ?? PrivateKey::createKey()->toString('PKCS8');
         $this->privateKeyPassPhrase = $privateKeyPassPhrase;
         $this->extensionsJsonString = $extensionsJsonString;
     }

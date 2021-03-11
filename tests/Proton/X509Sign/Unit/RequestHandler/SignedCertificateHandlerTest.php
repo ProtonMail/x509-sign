@@ -56,10 +56,10 @@ class SignedCertificateHandlerTest extends TestCase
         $application = new Application();
         $user = new User();
         $application->receiveRequestFromUser($user);
-        $certificate = $application->generateCertificate($signServerPublicKey->toString('PKCS1'));
+        $certificate = $application->generateCertificate($signServerPublicKey->toString('PKCS8'));
 
         $result = (new SignedCertificateHandler())->handle(
-            $signServerPrivateKey->toString('PKCS1'),
+            $signServerPrivateKey->toString('PKCS8'),
             $passPhrase,
             json_encode([$application->getExtension()]),
             [
@@ -106,7 +106,7 @@ class SignedCertificateHandlerTest extends TestCase
         $privateKey = PrivateKey::createKey()->withPassword('Le petit chien est sur la pente fatale.');
 
         $handler->handle(
-            $privateKey->toString('PKCS1'),
+            $privateKey->toString('PKCS8'),
             'Le petit chien est sur la pente fatale.',
             null,
             [
@@ -157,7 +157,7 @@ class SignedCertificateHandlerTest extends TestCase
         $user = new User();
         $application->setUserData($user->getSubjectDn()['commonName'], ['level' => 12]);
         $application->receiveRequestFromUser($user);
-        $certificate = $application->generateCertificate($signServerPublicKey->toString('PKCS1'));
+        $certificate = $application->generateCertificate($signServerPublicKey->toString('PKCS8'));
 
         /** @var PublicKey $userPublicKey */
         $userPublicKey = PublicKey::load($user->getPublicKey());
