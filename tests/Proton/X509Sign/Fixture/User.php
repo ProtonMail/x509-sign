@@ -33,7 +33,7 @@ final class User
         /** @var PublicKey $publicKey */
         $publicKey = $this->userKey->getPublicKey();
 
-        return $publicKey->toString('PKCS1');
+        return $publicKey->toString('PKCS8');
     }
 
     /**

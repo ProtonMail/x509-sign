@@ -25,6 +25,6 @@ final class PublicKeyHandler implements RequestHandlerInterface
         /** @var PrivateKey $privateKey */
         $privateKey = PrivateKey::load($privateKey, $privateKeyPassPhrase ?? false);
 
-        return $privateKey->getPublicKey()->toString($data['format'] ?? 'PKCS1');
+        return $privateKey->getPublicKey()->toString($data['format'] ?? 'PKCS8');
     }
 }
