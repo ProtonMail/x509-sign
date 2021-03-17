@@ -14,10 +14,6 @@ set_error_handler(function ($severity, $message, $file, $line) {
 
 header('Content-type: application/json');
 
-(new Server(
-    getenv('SIGNATURE_PRIVATE_KEY') ?: null,
-    getenv('SIGNATURE_PRIVATE_KEY_PASSPHRASE') ?: null,
-    getenv('EXTENSIONS') ?: null,
-))->handleRequests(
+Server::fromEnv()->handleRequests(
     json_decode(file_get_contents('php://input') ?: '{}', true, 512, JSON_THROW_ON_ERROR) ?: [],
 );

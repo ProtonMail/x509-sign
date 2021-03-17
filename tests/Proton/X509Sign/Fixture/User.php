@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace Tests\Proton\X509Sign\Fixture;
 
-use phpseclib3\Crypt\RSA\PrivateKey;
-use phpseclib3\Crypt\RSA\PublicKey;
+use phpseclib3\Crypt\Common\PrivateKey;
+use phpseclib3\Crypt\Common\PublicKey;
+use phpseclib3\Crypt\EC;
+use Proton\X509Sign\Key;
 
 final class User
 {
@@ -17,12 +19,9 @@ final class User
 
     private string $certificate;
 
-    public function __construct()
+    public function __construct(?PrivateKey $clientPrivateKey = null)
     {
-        /** @var PrivateKey $clientPrivateKey */
-        $clientPrivateKey = PrivateKey::createKey();
-
-        $this->userKey = $clientPrivateKey;
+        $this->userKey = $clientPrivateKey ?? EC::createKey('ed25519');
     }
 
     /**
@@ -34,6 +33,14 @@ final class User
         $publicKey = $this->userKey->getPublicKey();
 
         return $publicKey->toString('PKCS8');
+    }
+
+    /**
+     * @return string|null
+     */
+    public function getPublicKeyMode(): ?string
+    {
+        return Key::getMode($this->userKey);
     }
 
     /**

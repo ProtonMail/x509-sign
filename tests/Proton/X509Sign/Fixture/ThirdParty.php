@@ -4,8 +4,9 @@ declare(strict_types=1);
 
 namespace Tests\Proton\X509Sign\Fixture;
 
-use phpseclib3\Crypt\RSA\PublicKey;
+use phpseclib3\Crypt\Common\PublicKey;
 use phpseclib3\File\X509;
+use Proton\X509Sign\Key;
 use Proton\X509Sign\Server;
 use ReflectionProperty;
 
@@ -19,6 +20,8 @@ final class ThirdParty
 
     private ?string $signatureServerPublicKey = null;
 
+    private ?string $signatureServerPublicKeyMode = null;
+
     public function connectToSignatureServer(Server $signatureServer): void
     {
         $this->signatureServer = $signatureServer;
@@ -26,10 +29,9 @@ final class ThirdParty
 
     public function recognizeUserInCertificate(User $user, string $certificate): bool
     {
-        /** @var PublicKey $serverPublicKey */
-        $serverPublicKey = PublicKey::load($this->getSignatureServerPublicKey());
-        /** @var PublicKey $userPublicKey */
-        $userPublicKey = PublicKey::load($user->getPublicKey());
+        $serverPublicKey = $this->getSignatureServerPublicKey();
+        $mode = $user->getPublicKeyMode();
+        $userPublicKey = Key::loadPublic($mode, $user->getPublicKey());
 
         $x509 = new X509();
         $data = $x509->loadX509($certificate);
@@ -49,21 +51,27 @@ final class ThirdParty
             $signature = substr($signature, 1);
         }
 
-        return $subjectPublicKey === $userPublicKey->toString('PSS')
+        $format = ([
+            Key::RSA => 'PSS',
+        ])[$mode] ?? 'PKCS8';
+
+        return $subjectPublicKey === $userPublicKey->toString($format)
             && $serverPublicKey->verify($signatureSubject, $signature);
     }
 
-    private function getSignatureServerPublicKey(): string
+    private function getSignatureServerPublicKey(): PublicKey
     {
         if (!$this->signatureServerPublicKey) {
             $response = $this->postJson([
                 'publicKey' => [],
+                'publicKeyMode' => [],
             ]);
 
             $this->signatureServerPublicKey = $response['publicKey']['result'];
+            $this->signatureServerPublicKeyMode = $response['publicKeyMode']['result'];
         }
 
-        return $this->signatureServerPublicKey;
+        return Key::loadPublic($this->signatureServerPublicKeyMode, $this->signatureServerPublicKey);
     }
 
     /**

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Proton\X509Sign\Unit;
 
 use InvalidArgumentException;
+use phpseclib3\Crypt\EC;
 use Proton\X509Sign\Server;
 use Tests\Proton\X509Sign\TestCase;
 
@@ -19,7 +20,7 @@ class ServerTest extends TestCase
     public function testConstructor(): void
     {
         self::assertInstanceOf(Server::class, new Server());
-        self::assertInstanceOf(Server::class, new Server('some string'));
+        self::assertInstanceOf(Server::class, new Server(EC::createKey('ed25519')));
         self::assertInstanceOf(Server::class, new Server(null, 'some string'));
     }
 
