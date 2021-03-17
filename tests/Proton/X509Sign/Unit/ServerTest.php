@@ -6,7 +6,10 @@ namespace Tests\Proton\X509Sign\Unit;
 
 use InvalidArgumentException;
 use phpseclib3\Crypt\EC;
+use phpseclib3\Crypt\RSA;
+use Proton\X509Sign\Key;
 use Proton\X509Sign\Server;
+use ReflectionProperty;
 use Tests\Proton\X509Sign\TestCase;
 
 /**
@@ -22,6 +25,26 @@ class ServerTest extends TestCase
         self::assertInstanceOf(Server::class, new Server());
         self::assertInstanceOf(Server::class, new Server(EC::createKey('ed25519')));
         self::assertInstanceOf(Server::class, new Server(null, 'some string'));
+    }
+
+    /**
+     * @covers ::fromEnv
+     */
+    public function testFromEnv(): void
+    {
+        putenv('SIGNATURE_PRIVATE_KEY=');
+        $privateKey = new ReflectionProperty(Server::class, 'privateKey');
+        $privateKey->setAccessible(true);
+        $server = Server::fromEnv();
+
+        self::assertInstanceOf(Server::class, $server);
+        self::assertSame(Key::RSA, Key::getMode($privateKey->getValue($server)));
+
+        putenv('SIGNATURE_PRIVATE_KEY=' . EC::createKey('ed25519')->toString('PKCS8'));
+        $server = Server::fromEnv();
+
+        self::assertInstanceOf(Server::class, $server);
+        self::assertSame(Key::EC, Key::getMode($privateKey->getValue($server)));
     }
 
     /**

@@ -4,13 +4,11 @@ declare(strict_types=1);
 
 namespace Tests\Proton\X509Sign\Unit;
 
-use phpseclib3\Crypt\DH;
 use phpseclib3\Crypt\EC;
 use phpseclib3\Crypt\RSA;
 use phpseclib3\Crypt\RSA\PrivateKey;
 use phpseclib3\File\ASN1;
 use phpseclib3\File\X509;
-use Proton\X509Sign\Key;
 use Proton\X509Sign\Issuer;
 use ReflectionProperty;
 use Tests\Proton\X509Sign\TestCase;
@@ -25,12 +23,6 @@ class IssuerTest extends TestCase
      */
     public function testIssueWithRSAKey(): void
     {
-//        var_dump((CryptInterface::PRIVATE_KEY_MODES[CryptInterface::RSA])::createKey(2048)->toString('PKCS8'));
-//        // EC::createKey('Ed25519')
-//        var_dump((CryptInterface::PRIVATE_KEY_MODES[CryptInterface::EC])::createKey('Ed25519')->toString('PKCS8'));
-//        var_dump((CryptInterface::PRIVATE_KEY_MODES[CryptInterface::DSA])::createKey(2048, 224)->toString('PKCS8'));
-//        var_dump((CryptInterface::PRIVATE_KEY_MODES[CryptInterface::DH])::createKey(DH::createParameters(1024))->toString('PKCS8'));
-//        exit;
         $issuer = new Issuer();
 
         self::assertNull($issuer->issue(
