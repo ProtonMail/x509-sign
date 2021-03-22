@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Proton\X509Sign;
 
 use DateTimeInterface;
-use phpseclib3\Crypt\RSA\PrivateKey;
-use phpseclib3\Crypt\RSA\PublicKey;
+use phpseclib3\Crypt\Common\PrivateKey;
+use phpseclib3\Crypt\Common\PublicKey;
 use phpseclib3\File\ASN1;
 use phpseclib3\File\X509;
 
