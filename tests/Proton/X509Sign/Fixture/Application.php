@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace Tests\Proton\X509Sign\Fixture;
 
-use phpseclib3\Crypt\RSA\PrivateKey;
-use phpseclib3\Crypt\RSA\PublicKey;
+use phpseclib3\Crypt\EC;
+use phpseclib3\Crypt\Common\PrivateKey;
+use phpseclib3\Crypt\Common\PublicKey;
 use phpseclib3\File\X509;
+use Proton\X509Sign\Key;
 use Proton\X509Sign\Server;
 
 /**
@@ -44,14 +46,13 @@ final class Application
 
     private ?string $signatureServerPublicKey = null;
 
+    private ?string $signatureServerPublicKeyMode = null;
+
     private bool $satisfied = false;
 
     public function __construct()
     {
-        /** @var PrivateKey $middlewarePrivateKey */
-        $middlewarePrivateKey = PrivateKey::createKey();
-
-        $this->applicationKey = $middlewarePrivateKey;
+        $this->applicationKey = EC::createKey('ed25519');
     }
 
     public function receiveRequestFromUser(User $user): void
@@ -59,11 +60,8 @@ final class Application
         $this->currentUser = $user;
     }
 
-    public function generateCertificate(string $signServerPublicKeyString): string
+    public function generateCertificate(PublicKey $signServerPublicKey): string
     {
-        /** @var PublicKey $signServerPublicKey */
-        $signServerPublicKey = PublicKey::load($signServerPublicKeyString);
-
         $this->loadASN1Extension();
 
         $userData = $this->currentUser->getSubjectDn();
@@ -109,13 +107,19 @@ final class Application
         $this->signatureServer = $signatureServer;
     }
 
-    public function getSignedCertificate(): ?string
+    public function getSignedCertificate(?string $mode = null): ?string
     {
+        $parameters = [
+            'certificate' => $this->generateCertificate($this->getSignatureServerPublicKey()),
+            'clientPublicKey' => $this->currentUser->getPublicKey(),
+        ];
+
+        if ($mode) {
+            $parameters['mode'] = $mode;
+        }
+
         $response = $this->postJson([
-            'signedCertificate' => [
-                'certificate' => $this->generateCertificate($this->getSignatureServerPublicKey()),
-                'clientPublicKey' => $this->currentUser->getPublicKey(),
-            ],
+            'signedCertificate' => $parameters,
         ]);
 
         if (!($response['signedCertificate']['success'] ?? false)) {
@@ -128,10 +132,10 @@ final class Application
         return $certificate;
     }
 
-    public function askForSignature(): void
+    public function askForSignature(?string $mode = null): void
     {
-        /** @var string $certificate */
-        $certificate = $this->getSignedCertificate();
+        /** @var string|null $certificate */
+        $certificate = $this->getSignedCertificate($mode);
 
         if (!$certificate) {
             return;
@@ -178,17 +182,19 @@ final class Application
         return null;
     }
 
-    private function getSignatureServerPublicKey(): string
+    private function getSignatureServerPublicKey(): PublicKey
     {
         if (!$this->signatureServerPublicKey) {
             $response = $this->postJson([
                 'publicKey' => [],
+                'publicKeyMode' => [],
             ]);
 
             $this->signatureServerPublicKey = $response['publicKey']['result'];
+            $this->signatureServerPublicKeyMode = $response['publicKeyMode']['result'];
         }
 
-        return $this->signatureServerPublicKey;
+        return Key::loadPublic($this->signatureServerPublicKeyMode, $this->signatureServerPublicKey);
     }
 
     /**

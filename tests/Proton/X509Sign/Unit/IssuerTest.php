@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace Tests\Proton\X509Sign\Unit;
 
+use phpseclib3\Crypt\DSA;
+use phpseclib3\Crypt\EC;
+use phpseclib3\Crypt\RSA;
 use phpseclib3\Crypt\RSA\PrivateKey;
 use phpseclib3\File\ASN1;
 use phpseclib3\File\X509;
@@ -19,13 +22,13 @@ class IssuerTest extends TestCase
     /**
      * @covers ::issue
      */
-    public function testIssue(): void
+    public function testIssueWithRSAKey(): void
     {
         $issuer = new Issuer();
 
         self::assertNull($issuer->issue(
-            PrivateKey::createKey(),
-            PrivateKey::createKey()->getPublicKey(),
+            RSA::createKey(),
+            RSA::createKey()->getPublicKey(),
             [],
             [],
         ));
@@ -76,6 +79,152 @@ class IssuerTest extends TestCase
         ['extensions' => $extensions] = $this->getCertificateData($issuer->issue(
             PrivateKey::createKey(),
             PrivateKey::createKey()->getPublicKey(),
+            ['commonName' => 'foo'],
+            ['commonName' => 'bar'],
+            null,
+            null,
+            null,
+            [
+                'custom-ext-1' => 'Yub yub!',
+            ],
+        ));
+
+        self::assertSame('Yub yub!', $extensions['custom-ext-1']);
+    }
+
+    /**
+     * @covers ::issue
+     */
+    public function testIssueWithEd25519Key(): void
+    {
+        $issuer = new Issuer();
+
+        self::assertNull($issuer->issue(
+            EC::createKey('Ed25519'),
+            EC::createKey('Ed25519')->getPublicKey(),
+            [],
+            [],
+        ));
+
+        [
+            'issuer' => $issuerDn,
+            'subject' => $subjectDn,
+        ] = $this->getCertificateData($issuer->issue(
+            EC::createKey('Ed25519'),
+            EC::createKey('Ed25519')->getPublicKey(),
+            ['commonName' => 'foo'],
+            ['commonName' => 'bar'],
+        ));
+
+        self::assertSame($issuerDn, ['commonName' => 'foo']);
+        self::assertSame($subjectDn, ['commonName' => 'bar']);
+
+        ['serialNumber' => $serialNumber] = $this->getCertificateData($issuer->issue(
+            EC::createKey('Ed25519'),
+            EC::createKey('Ed25519')->getPublicKey(),
+            ['commonName' => 'foo'],
+            ['commonName' => 'bar'],
+            '9256'
+        ));
+
+        self::assertSame('9256', $serialNumber);
+
+        ['hours' => $hours] = $this->getCertificateData($issuer->issue(
+            EC::createKey('Ed25519'),
+            EC::createKey('Ed25519')->getPublicKey(),
+            ['commonName' => 'foo'],
+            ['commonName' => 'bar'],
+            null,
+            '-1 day',
+            '+5 days'
+        ));
+
+        self::assertSame(5 * 24, $hours);
+
+        $issuer->loadExtensions([
+            [
+                'custom-ext-1',
+                '2.16.840.1.101.3.4.2.45',
+                ['type' => ASN1::TYPE_OCTET_STRING],
+            ],
+        ]);
+
+        ['extensions' => $extensions] = $this->getCertificateData($issuer->issue(
+            EC::createKey('Ed25519'),
+            EC::createKey('Ed25519')->getPublicKey(),
+            ['commonName' => 'foo'],
+            ['commonName' => 'bar'],
+            null,
+            null,
+            null,
+            [
+                'custom-ext-1' => 'Yub yub!',
+            ],
+        ));
+
+        self::assertSame('Yub yub!', $extensions['custom-ext-1']);
+    }
+
+    /**
+     * @covers ::issue
+     */
+    public function testIssueWithDSAKey(): void
+    {
+        $issuer = new Issuer();
+
+        self::assertNull($issuer->issue(
+            DSA::createKey(),
+            DSA::createKey()->getPublicKey(),
+            [],
+            [],
+        ));
+
+        [
+            'issuer' => $issuerDn,
+            'subject' => $subjectDn,
+        ] = $this->getCertificateData($issuer->issue(
+            DSA::createKey(),
+            DSA::createKey()->getPublicKey(),
+            ['commonName' => 'foo'],
+            ['commonName' => 'bar'],
+        ));
+
+        self::assertSame($issuerDn, ['commonName' => 'foo']);
+        self::assertSame($subjectDn, ['commonName' => 'bar']);
+
+        ['serialNumber' => $serialNumber] = $this->getCertificateData($issuer->issue(
+            DSA::createKey(),
+            DSA::createKey()->getPublicKey(),
+            ['commonName' => 'foo'],
+            ['commonName' => 'bar'],
+            '9256'
+        ));
+
+        self::assertSame('9256', $serialNumber);
+
+        ['hours' => $hours] = $this->getCertificateData($issuer->issue(
+            DSA::createKey(),
+            DSA::createKey()->getPublicKey(),
+            ['commonName' => 'foo'],
+            ['commonName' => 'bar'],
+            null,
+            '-1 day',
+            '+5 days'
+        ));
+
+        self::assertSame(5 * 24, $hours);
+
+        $issuer->loadExtensions([
+            [
+                'custom-ext-1',
+                '2.16.840.1.101.3.4.2.45',
+                ['type' => ASN1::TYPE_OCTET_STRING],
+            ],
+        ]);
+
+        ['extensions' => $extensions] = $this->getCertificateData($issuer->issue(
+            DSA::createKey(),
+            DSA::createKey()->getPublicKey(),
             ['commonName' => 'foo'],
             ['commonName' => 'bar'],
             null,

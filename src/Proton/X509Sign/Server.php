@@ -5,8 +5,10 @@ declare(strict_types=1);
 namespace Proton\X509Sign;
 
 use InvalidArgumentException;
-use phpseclib3\Crypt\RSA\PrivateKey;
+use phpseclib3\Crypt\Common\PrivateKey;
+use phpseclib3\Crypt\RSA;
 use Proton\X509Sign\RequestHandler\PublicKeyHandler;
+use Proton\X509Sign\RequestHandler\PublicKeyModeHandler;
 use Proton\X509Sign\RequestHandler\SignedCertificateHandler;
 use Throwable;
 
@@ -14,23 +16,37 @@ class Server
 {
     protected array $handlers = [
         'publicKey' => PublicKeyHandler::class,
+        'publicKeyMode' => PublicKeyModeHandler::class,
         'signedCertificate' => SignedCertificateHandler::class,
     ];
 
-    protected string $privateKey;
-
-    protected ?string $privateKeyPassPhrase;
+    protected PrivateKey $privateKey;
 
     protected ?string $extensionsJsonString;
 
     public function __construct(
-        ?string $privateKey = null,
-        ?string $privateKeyPassPhrase = null,
+        ?PrivateKey $privateKey = null,
         ?string $extensionsJsonString = null
     ) {
-        $this->privateKey = $privateKey ?? PrivateKey::createKey()->toString('PKCS8');
-        $this->privateKeyPassPhrase = $privateKeyPassPhrase;
+        $this->privateKey = $privateKey ?? RSA::createKey();
         $this->extensionsJsonString = $extensionsJsonString;
+    }
+
+    public static function fromEnv(): self
+    {
+        $privateKeyString = getenv('SIGNATURE_PRIVATE_KEY');
+        $privateKey = $privateKeyString
+            ? Key::loadPrivate(
+                getenv('SIGNATURE_PRIVATE_KEY_MODE') ?: Key::EC,
+                $privateKeyString,
+                getenv('SIGNATURE_PRIVATE_KEY_PASSPHRASE') ?: null,
+            )
+            : null;
+
+        return new static(
+            $privateKey,
+            getenv('EXTENSIONS') ?: null,
+        );
     }
 
     /**
@@ -105,7 +121,6 @@ class Server
 
         return (new $handler())->handle(
             $this->privateKey,
-            $this->privateKeyPassPhrase,
             $this->extensionsJsonString,
             $data,
         );

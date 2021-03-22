@@ -4,10 +4,11 @@ declare(strict_types=1);
 
 namespace Proton\X509Sign\RequestHandler;
 
-use phpseclib3\Crypt\RSA\PrivateKey;
-use phpseclib3\Crypt\RSA\PublicKey;
+use phpseclib3\Crypt\Common\PrivateKey;
+use phpseclib3\Crypt\Common\PublicKey;
 use phpseclib3\File\X509;
 use Proton\X509Sign\Issuer;
+use Proton\X509Sign\Key;
 use Proton\X509Sign\RequestHandlerInterface;
 use RuntimeException;
 
@@ -21,32 +22,29 @@ final class SignedCertificateHandler implements RequestHandlerInterface
     }
 
     /**
-     * @param string $privateKey
-     * @param string|null $privateKeyPassPhrase
+     * @param PrivateKey $privateKey
      * @param string|null $extensionsJsonString
-     * @param array{certificate: string, clientPublicKey: string} $data
+     * @param array{
+     *     mode: Key::EC | Key::RSA | Key::DSA,
+     *     certificate: string, clientPublicKey: string,
+     * } $data
      * @return string
      */
     public function handle(
-        string $privateKey,
-        ?string $privateKeyPassPhrase = null,
+        PrivateKey $privateKey,
         ?string $extensionsJsonString = null,
         array $data = []
     ): string {
-        /** @var PrivateKey $privateKey */
-        $privateKey = PrivateKey::load($privateKey, $privateKeyPassPhrase ?? false);
-
         /**
          * @var string $certificate
-         * @var string $clientPublicKey
+         * @var string $clientPublicKeyString
          */
         [
             'certificate' => $certificate,
             'clientPublicKey' => $clientPublicKeyString,
         ] = $data;
 
-        /** @var PublicKey $clientPublicKey */
-        $clientPublicKey = PublicKey::load($clientPublicKeyString);
+        $clientPublicKey = Key::loadPublic($data['mode'] ?? Key::EC, $clientPublicKeyString);
 
         if ($extensionsJsonString) {
             $this->loadExtensions(json_decode($extensionsJsonString, true));

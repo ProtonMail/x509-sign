@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 namespace Tests\Proton\X509Sign\Unit\RequestHandler;
 
-use Generator;
+use phpseclib3\Crypt\EC;
+use phpseclib3\Crypt\RSA;
 use phpseclib3\Crypt\RSA\PrivateKey;
 use phpseclib3\Crypt\RSA\PublicKey;
 use phpseclib3\File\ASN1;
 use phpseclib3\File\X509;
+use Proton\X509Sign\Key;
 use Proton\X509Sign\Issuer;
 use Proton\X509Sign\RequestHandler\SignedCertificateHandler;
 use ReflectionMethod;
@@ -39,28 +41,63 @@ class SignedCertificateHandlerTest extends TestCase
     }
 
     /**
-     * @param string|null $passPhrase
-     *
      * @covers ::handle
-     *
-     * @dataProvider getPassphrases
      */
-    public function testHandle(?string $passPhrase): void
+    public function testHandle(): void
     {
         /** @var PrivateKey $signServerPrivateKey */
-        $signServerPrivateKey = PrivateKey::createKey()->withPassword($passPhrase ?? false);
+        $signServerPrivateKey = PrivateKey::createKey();
 
         /** @var PublicKey $signServerPublicKey */
         $signServerPublicKey = $signServerPrivateKey->getPublicKey();
 
         $application = new Application();
-        $user = new User();
+        $user = new User(RSA::createKey());
         $application->receiveRequestFromUser($user);
-        $certificate = $application->generateCertificate($signServerPublicKey->toString('PKCS8'));
+        $certificate = $application->generateCertificate($signServerPublicKey);
 
         $result = (new SignedCertificateHandler())->handle(
-            $signServerPrivateKey->toString('PKCS8'),
-            $passPhrase,
+            $signServerPrivateKey,
+            json_encode([$application->getExtension()]),
+            [
+                'certificate' => $certificate,
+                'clientPublicKey' => $user->getPublicKey(),
+                'mode' => Key::RSA,
+            ],
+        );
+
+        self::assertNotSame($certificate, $result);
+
+        [
+            'hours' => $hours,
+            'issuer' => $issuer,
+            'subject' => $subject,
+            'serialNumber' => $serialNumber,
+        ] = $this->getCertificateData($result);
+
+        self::assertSame(24, $hours);
+        self::assertSame($application->getIssuerDn(), $issuer);
+        self::assertSame($user->getSubjectDn(), $subject);
+        self::assertSame('42', $serialNumber);
+    }
+
+    /**
+     * @covers ::handle
+     */
+    public function testHandleWithEd25519Key(): void
+    {
+        $signServerPrivateKey = EC::createKey('Ed25519');
+
+        /** @var EC\PublicKey $signServerPublicKey */
+        $signServerPublicKey = $signServerPrivateKey->getPublicKey();
+
+        $application = new Application();
+        $user = new User();
+        $application->receiveRequestFromUser($user);
+        $certificate = $application->generateCertificate($signServerPublicKey);
+
+        $result = (new SignedCertificateHandler())->handle(
+            $signServerPrivateKey,
             json_encode([$application->getExtension()]),
             [
                 'certificate' => $certificate,
@@ -84,16 +121,6 @@ class SignedCertificateHandlerTest extends TestCase
     }
 
     /**
-     * @psalm-return Generator<?string[]>
-     */
-    public function getPassphrases(): Generator
-    {
-        // TODO: Support passphrases
-        // yield ['Le petit chien est sur la pente fatale.'];
-        yield [null];
-    }
-
-    /**
      * @covers ::handle
      */
     public function testHandleIncorrectCertificate(): void
@@ -106,12 +133,12 @@ class SignedCertificateHandlerTest extends TestCase
         $privateKey = PrivateKey::createKey()->withPassword('Le petit chien est sur la pente fatale.');
 
         $handler->handle(
-            $privateKey->toString('PKCS8'),
-            'Le petit chien est sur la pente fatale.',
+            $privateKey,
             null,
             [
                 'certificate' => 'foobar',
-                'clientPublicKey' => (new User())->getPublicKey(),
+                'clientPublicKey' => (new User(RSA::createKey()))->getPublicKey(),
+                'mode' => Key::RSA,
             ],
         );
     }
@@ -154,10 +181,10 @@ class SignedCertificateHandlerTest extends TestCase
         /** @var PublicKey $signServerPublicKey */
         $signServerPublicKey = $signServerPrivateKey->getPublicKey();
 
-        $user = new User();
+        $user = new User(RSA::createKey());
         $application->setUserData($user->getSubjectDn()['commonName'], ['level' => 12]);
         $application->receiveRequestFromUser($user);
-        $certificate = $application->generateCertificate($signServerPublicKey->toString('PKCS8'));
+        $certificate = $application->generateCertificate($signServerPublicKey);
 
         /** @var PublicKey $userPublicKey */
         $userPublicKey = PublicKey::load($user->getPublicKey());

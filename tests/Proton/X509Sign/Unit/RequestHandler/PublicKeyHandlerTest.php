@@ -20,38 +20,17 @@ class PublicKeyHandlerTest extends TestCase
         /** @var PrivateKey $privateKey */
         $privateKey = PrivateKey::createKey()->withPassword('Le petit chien est sur la pente fatale.');
 
-        $result = $handler->handle(
-            $privateKey->toString('PKCS8'),
-            'Le petit chien est sur la pente fatale.',
-        );
+        $result = $handler->handle($privateKey);
 
         self::assertSame($privateKey->getPublicKey()->toString('PKCS8'), $result);
 
         $result = $handler->handle(
-            $privateKey->toString('PKCS8'),
-            'Le petit chien est sur la pente fatale.',
+            $privateKey,
             null,
             ['format' => 'OpenSSH'],
         );
 
         self::assertSame($privateKey->getPublicKey()->toString('OpenSSH'), $result);
-    }
-
-    public function testHandleWrongPass(): void
-    {
-        self::expectException(NoKeyLoadedException::class);
-        self::expectExceptionMessage('Unable to read key');
-
-        $handler = new PublicKeyHandler();
-        /** @var PrivateKey $privateKey */
-        $privateKey = PrivateKey::createKey()->withPassword('Le petit chien est sur la pente fatale.');
-
-        $handler->handle(
-            $privateKey->toString('PKCS8'),
-            "Le code, c'est `Le Code` ?",
-            null,
-            ['format' => 'OpenSSH'],
-        );
     }
 
     public function testHandleWrongKey(): void
@@ -61,8 +40,7 @@ class PublicKeyHandlerTest extends TestCase
         $privateKey = PrivateKey::createKey()->withPassword('Correct');
 
         $result = $handler->handle(
-            PrivateKey::createKey()->withPassword('Correct')->toString('PKCS8'),
-            'Correct',
+            PrivateKey::createKey()->withPassword('Correct'),
             null,
             ['format' => 'OpenSSH'],
         );
