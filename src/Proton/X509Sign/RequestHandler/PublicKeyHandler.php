@@ -13,7 +13,7 @@ final class PublicKeyHandler implements RequestHandlerInterface
      * @param PrivateKey $privateKey
      * @param string|null $extensionsJsonString
      * @param array{
-     *     mode: Key::EC | Key::RSA | Key::DH | Key::DSA,
+     *     mode: Key::EC | Key::RSA | Key::DSA,
      *     format?: 'MSBLOB' | 'OpenSSH' | 'PKCS1' | 'PKCS8' | 'PSS' | 'PuTTY' | 'XML',
      * } $data
      * @return string

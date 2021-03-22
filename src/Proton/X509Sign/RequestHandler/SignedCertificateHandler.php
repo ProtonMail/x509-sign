@@ -25,7 +25,7 @@ final class SignedCertificateHandler implements RequestHandlerInterface
      * @param PrivateKey $privateKey
      * @param string|null $extensionsJsonString
      * @param array{
-     *     mode: Key::EC | Key::RSA | Key::DH | Key::DSA,
+     *     mode: Key::EC | Key::RSA | Key::DSA,
      *     certificate: string, clientPublicKey: string,
      * } $data
      * @return string

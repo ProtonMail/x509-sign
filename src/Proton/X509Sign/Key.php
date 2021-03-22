@@ -7,7 +7,6 @@ namespace Proton\X509Sign;
 use phpseclib3\Crypt\Common\AsymmetricKey;
 use phpseclib3\Crypt\Common\PrivateKey;
 use phpseclib3\Crypt\Common\PublicKey;
-use phpseclib3\Crypt\DH;
 use phpseclib3\Crypt\DSA;
 use phpseclib3\Crypt\EC;
 use phpseclib3\Crypt\RSA;
@@ -21,7 +20,8 @@ final class Key
 
     public const PRIVATE_KEY_MODES = [
         self::RSA => RSA::class,
-        self::DH => DH::class,
+        // Not yet supported by phpseclib
+        // self::DH => DH::class,
         self::DSA => DSA::class,
         self::EC => EC::class,
     ];
@@ -35,11 +35,6 @@ final class Key
         }
 
         return null;
-    }
-
-    public static function load(string $mode, string $key, ?string $password = null): AsymmetricKey
-    {
-        return (self::PRIVATE_KEY_MODES[$mode])::load($key, $password ?? false);
     }
 
     public static function loadPrivate(string $mode, string $key, ?string $password = null): PrivateKey
@@ -56,5 +51,10 @@ final class Key
         $publicKey = self::load($mode, $key, $password);
 
         return $publicKey;
+    }
+
+    private static function load(string $mode, string $key, ?string $password = null): AsymmetricKey
+    {
+        return (self::PRIVATE_KEY_MODES[$mode])::load($key, $password ?? false);
     }
 }

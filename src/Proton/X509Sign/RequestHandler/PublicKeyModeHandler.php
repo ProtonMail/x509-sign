@@ -14,7 +14,7 @@ final class PublicKeyModeHandler implements RequestHandlerInterface
      * @param PrivateKey $privateKey
      * @param string|null $extensionsJsonString
      * @param array $data
-     * @return string Key::EC | Key::RSA | Key::DH | Key::DSA | 'unknown'
+     * @return string Key::EC | Key::RSA | Key::DSA | 'unknown'
      */
     public function handle(
         PrivateKey $privateKey,

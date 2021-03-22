@@ -24,6 +24,8 @@ class PublicKeyModeHandlerTest extends TestCase
         self::assertSame(Key::RSA, $handler->handle(RSA::createKey()));
         self::assertSame(Key::EC, $handler->handle(EC::createKey('ed25519')));
         self::assertSame(Key::DSA, $handler->handle(DSA::createKey()));
+        // Not yet supported by phpseclib
+        // 1self::assertSame(Key::DH, $handler->handle(DH::createKey(DH::createParameters(2048))));
         self::assertSame('unknown', $handler->handle(new class () implements PrivateKey {
             public function sign($message)
             {
