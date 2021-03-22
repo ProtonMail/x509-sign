@@ -29,7 +29,7 @@ final class Key
     public static function getMode(object $key): ?string
     {
         foreach (self::PRIVATE_KEY_MODES as $mode => $namespace) {
-            if (is_a($key, "$namespace\PrivateKey")) {
+            if (is_a($key, "$namespace\PrivateKey") || is_a($key, "$namespace\PublicKey")) {
                 return $mode;
             }
         }

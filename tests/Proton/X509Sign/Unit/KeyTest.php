@@ -32,6 +32,16 @@ class KeyTest extends TestCase
     }
 
     /**
+     * @covers ::getMode
+     */
+    public function testGetModeFromPublicKey(): void
+    {
+        self::assertSame(Key::EC, Key::getMode(EC::createKey('Ed25519')->getPublicKey()));
+        self::assertSame(Key::RSA, Key::getMode(RSA::createKey()->getPublicKey()));
+        self::assertSame(Key::DSA, Key::getMode(DSA::createKey(2048, 224)->getPublicKey()));
+    }
+
+    /**
      * @covers ::load
      * @covers ::loadPrivate
      */
