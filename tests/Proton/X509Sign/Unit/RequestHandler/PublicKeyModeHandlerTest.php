@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace Tests\Proton\X509Sign\Unit\RequestHandler;
 
-use phpseclib3\Crypt\Common\PrivateKey;
 use phpseclib3\Crypt\DSA;
 use phpseclib3\Crypt\EC;
 use phpseclib3\Crypt\RSA;
 use Proton\X509Sign\Key;
 use Proton\X509Sign\RequestHandler\PublicKeyModeHandler;
+use Tests\Proton\X509Sign\Fixture\FooBarPrivateKey;
 use Tests\Proton\X509Sign\TestCase;
 
 /**
@@ -26,26 +26,6 @@ class PublicKeyModeHandlerTest extends TestCase
         self::assertSame(Key::DSA, $handler->handle(DSA::createKey()));
         // Not yet supported by phpseclib
         // 1self::assertSame(Key::DH, $handler->handle(DH::createKey(DH::createParameters(2048))));
-        self::assertSame('unknown', $handler->handle(new class () implements PrivateKey {
-            public function sign($message)
-            {
-                // noop
-            }
-
-            public function getPublicKey()
-            {
-                // noop
-            }
-
-            public function toString($type, array $options = [])
-            {
-                // noop
-            }
-
-            public function withPassword($string)
-            {
-                // noop
-            }
-        }));
+        self::assertSame('unknown', $handler->handle(new FooBarPrivateKey()));
     }
 }
