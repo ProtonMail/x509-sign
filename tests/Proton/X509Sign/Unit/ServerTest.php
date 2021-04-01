@@ -28,6 +28,7 @@ class ServerTest extends TestCase
     }
 
     /**
+     * @covers ::getEnv
      * @covers ::fromEnv
      */
     public function testFromEnv(): void

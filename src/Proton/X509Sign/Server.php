@@ -7,6 +7,7 @@ namespace Proton\X509Sign;
 use InvalidArgumentException;
 use phpseclib3\Crypt\Common\PrivateKey;
 use phpseclib3\Crypt\RSA;
+use Proton\X509Sign\RequestHandler\CertificateAuthorityHandler;
 use Proton\X509Sign\RequestHandler\PublicKeyHandler;
 use Proton\X509Sign\RequestHandler\PublicKeyModeHandler;
 use Proton\X509Sign\RequestHandler\SignedCertificateHandler;
@@ -15,6 +16,7 @@ use Throwable;
 class Server
 {
     protected array $handlers = [
+        'certificateAuthority' => CertificateAuthorityHandler::class,
         'publicKey' => PublicKeyHandler::class,
         'publicKeyMode' => PublicKeyModeHandler::class,
         'signedCertificate' => SignedCertificateHandler::class,
@@ -32,20 +34,36 @@ class Server
         $this->extensionsJsonString = $extensionsJsonString;
     }
 
+    private static function getEnv(array $keys): array
+    {
+        $cache = (@include __DIR__ . '/../../../storage/env.php') ?: [];
+
+        return array_combine($keys, array_map(
+            static fn (string $key) => array_key_exists($key, $cache) ? $cache[$key] : getenv($key),
+            $keys,
+        ));
+    }
+
     public static function fromEnv(): self
     {
-        $privateKeyString = getenv('SIGNATURE_PRIVATE_KEY');
+        $env = self::getEnv([
+            'SIGNATURE_PRIVATE_KEY',
+            'SIGNATURE_PRIVATE_KEY_MODE',
+            'SIGNATURE_PRIVATE_KEY_PASSPHRASE',
+            'EXTENSIONS',
+        ]);
+        $privateKeyString = $env['SIGNATURE_PRIVATE_KEY'];
         $privateKey = $privateKeyString
             ? Key::loadPrivate(
-                getenv('SIGNATURE_PRIVATE_KEY_MODE') ?: Key::EC,
+                $env['SIGNATURE_PRIVATE_KEY_MODE'] ?: Key::EC,
                 $privateKeyString,
-                getenv('SIGNATURE_PRIVATE_KEY_PASSPHRASE') ?: null,
+                $env['SIGNATURE_PRIVATE_KEY_PASSPHRASE'] ?: null,
             )
             : null;
 
         return new static(
             $privateKey,
-            getenv('EXTENSIONS') ?: null,
+            $env['EXTENSIONS'] ?: null,
         );
     }
 
