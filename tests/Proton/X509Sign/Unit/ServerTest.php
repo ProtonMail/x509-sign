@@ -24,10 +24,11 @@ class ServerTest extends TestCase
     {
         self::assertInstanceOf(Server::class, new Server());
         self::assertInstanceOf(Server::class, new Server(EC::createKey('ed25519')));
-        self::assertInstanceOf(Server::class, new Server(null, 'some string'));
+        self::assertInstanceOf(Server::class, new Server(null, []));
     }
 
     /**
+     * @covers ::getEnv
      * @covers ::fromEnv
      */
     public function testFromEnv(): void

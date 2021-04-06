@@ -23,18 +23,21 @@ final class SignedCertificateHandler implements RequestHandlerInterface
 
     /**
      * @param PrivateKey $privateKey
-     * @param string|null $extensionsJsonString
+     * @param array{
+     *  CA_FILE: string,
+     *  SIGNATURE_PRIVATE_KEY: string,
+     *  SIGNATURE_PRIVATE_KEY_MODE?: string|null,
+     *  SIGNATURE_PRIVATE_KEY_PASSPHRASE?: string|null,: string,
+     *  EXTENSIONS?: string|null,
+     * } $config
      * @param array{
      *     mode: Key::EC | Key::RSA | Key::DSA,
      *     certificate: string, clientPublicKey: string,
      * } $data
      * @return string
      */
-    public function handle(
-        PrivateKey $privateKey,
-        ?string $extensionsJsonString = null,
-        array $data = []
-    ): string {
+    public function handle(PrivateKey $privateKey, array $config = [], array $data = []): string
+    {
         /**
          * @var string $certificate
          * @var string $clientPublicKeyString
@@ -46,8 +49,8 @@ final class SignedCertificateHandler implements RequestHandlerInterface
 
         $clientPublicKey = Key::loadPublic($data['mode'] ?? Key::EC, $clientPublicKeyString);
 
-        if ($extensionsJsonString) {
-            $this->loadExtensions(json_decode($extensionsJsonString, true));
+        if (isset($config['EXTENSIONS'])) {
+            $this->loadExtensions(json_decode($config['EXTENSIONS'], true));
         }
 
         $result = $this->reIssueCertificate($certificate, $privateKey, $clientPublicKey);

@@ -58,7 +58,9 @@ class SignedCertificateHandlerTest extends TestCase
 
         $result = (new SignedCertificateHandler())->handle(
             $signServerPrivateKey,
-            json_encode([$application->getExtension()]),
+            [
+                'EXTENSIONS' => json_encode([$application->getExtension()]),
+            ],
             [
                 'certificate' => $certificate,
                 'clientPublicKey' => $user->getPublicKey(),
@@ -98,7 +100,9 @@ class SignedCertificateHandlerTest extends TestCase
 
         $result = (new SignedCertificateHandler())->handle(
             $signServerPrivateKey,
-            json_encode([$application->getExtension()]),
+            [
+                'EXTENSIONS' => json_encode([$application->getExtension()]),
+            ],
             [
                 'certificate' => $certificate,
                 'clientPublicKey' => $user->getPublicKey(),
@@ -134,7 +138,7 @@ class SignedCertificateHandlerTest extends TestCase
 
         $handler->handle(
             $privateKey,
-            null,
+            [],
             [
                 'certificate' => 'foobar',
                 'clientPublicKey' => (new User(RSA::createKey()))->getPublicKey(),
