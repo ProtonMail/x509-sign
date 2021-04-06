@@ -23,7 +23,8 @@ class SignTest extends TestCase
     {
         $alan = new User();
         $alanFavoriteService = new Application();
-        $signatureServer = new Server(null, json_encode([$alanFavoriteService->getExtension()]));
+        $config = ['EXTENSIONS' => json_encode([$alanFavoriteService->getExtension()])];
+        $signatureServer = new Server(null, $config);
 
         $alan->use($alanFavoriteService);
         $alanFavoriteService->connectToSignatureServer($signatureServer);
@@ -41,7 +42,8 @@ class SignTest extends TestCase
     {
         $alan = new User(RSA::createKey());
         $alanFavoriteService = new Application();
-        $signatureServer = new Server(null, json_encode([$alanFavoriteService->getExtension()]));
+        $config = ['EXTENSIONS' => json_encode([$alanFavoriteService->getExtension()])];
+        $signatureServer = new Server(null, $config);
 
         $alan->use($alanFavoriteService);
         $alanFavoriteService->connectToSignatureServer($signatureServer);
@@ -59,7 +61,8 @@ class SignTest extends TestCase
     {
         $alan = new User();
         $alanFavoriteService = new Application();
-        $signatureServer = new Server(null, json_encode([$alanFavoriteService->getExtension()]));
+        $config = ['EXTENSIONS' => json_encode([$alanFavoriteService->getExtension()])];
+        $signatureServer = new Server(null, $config);
 
         $alan->use($alanFavoriteService);
         $alanFavoriteService->connectToSignatureServer($signatureServer);
@@ -72,7 +75,7 @@ class SignTest extends TestCase
         self::assertTrue($thirdParty->recognizeUserInCertificate($alan, $certificate));
         self::assertFalse($thirdParty->recognizeUserInCertificate($someoneElse, $certificate));
 
-        $fakeSignatureServer = new Server(null, json_encode([$alanFavoriteService->getExtension()]));
+        $fakeSignatureServer = new Server(null, $config);
 
         // Alan tweaks his application to use an other signature server
         $alanFavoriteService->connectToSignatureServer($fakeSignatureServer);
@@ -90,7 +93,8 @@ class SignTest extends TestCase
     {
         $alan = new User(RSA::createKey());
         $alanFavoriteService = new Application();
-        $signatureServer = new Server(null, json_encode([$alanFavoriteService->getExtension()]));
+        $config = ['EXTENSIONS' => json_encode([$alanFavoriteService->getExtension()])];
+        $signatureServer = new Server(null, $config);
 
         $alan->use($alanFavoriteService);
         $alanFavoriteService->connectToSignatureServer($signatureServer);
@@ -103,7 +107,7 @@ class SignTest extends TestCase
         self::assertTrue($thirdParty->recognizeUserInCertificate($alan, $certificate));
         self::assertFalse($thirdParty->recognizeUserInCertificate($someoneElse, $certificate));
 
-        $fakeSignatureServer = new Server(null, json_encode([$alanFavoriteService->getExtension()]));
+        $fakeSignatureServer = new Server(null, $config);
 
         // Alan tweaks his application to use an other signature server
         $alanFavoriteService->connectToSignatureServer($fakeSignatureServer);
