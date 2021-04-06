@@ -24,14 +24,12 @@ class Server
 
     protected PrivateKey $privateKey;
 
-    protected ?string $extensionsJsonString;
+    protected array $config;
 
-    public function __construct(
-        ?PrivateKey $privateKey = null,
-        ?string $extensionsJsonString = null
-    ) {
+    public function __construct(?PrivateKey $privateKey = null, array $config = [])
+    {
         $this->privateKey = $privateKey ?? RSA::createKey();
-        $this->extensionsJsonString = $extensionsJsonString;
+        $this->config = $config;
     }
 
     private static function getEnv(array $keys): array
@@ -51,6 +49,7 @@ class Server
             'SIGNATURE_PRIVATE_KEY_MODE',
             'SIGNATURE_PRIVATE_KEY_PASSPHRASE',
             'EXTENSIONS',
+            'CA_FILE',
         ]);
         $privateKeyString = $env['SIGNATURE_PRIVATE_KEY'];
         $privateKey = $privateKeyString
@@ -61,10 +60,7 @@ class Server
             )
             : null;
 
-        return new static(
-            $privateKey,
-            $env['EXTENSIONS'] ?: null,
-        );
+        return new static($privateKey, $env);
     }
 
     /**
@@ -139,7 +135,7 @@ class Server
 
         return (new $handler())->handle(
             $this->privateKey,
-            $this->extensionsJsonString,
+            $this->config,
             $data,
         );
     }
