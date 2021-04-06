@@ -57,13 +57,7 @@ $env = [
 ];
 
 $dnProperties = [
-    'countryName' => 'CH',
-    'stateOrProvinceName' => 'GE',
-    'localityName' => 'Geneva',
-    'organizationName' => 'ProtonVPN',
-    'organizationalUnitName' => 'ProtonVPN Certificate Authority',
-    'commonName' => 'ProtonVPN',
-    'emailAddress' => 'proton@protonvpn.com',
+    'commonName' => 'ProtonVPN Client Certificate Authority',
 ];
 
 foreach ($dnProperties as $key => $value) {
