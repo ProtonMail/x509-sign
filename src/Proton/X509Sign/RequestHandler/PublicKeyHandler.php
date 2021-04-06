@@ -24,7 +24,7 @@ final class PublicKeyHandler implements RequestHandlerInterface
      * } $data
      * @return string
      */
-    public function handle(PrivateKey $privateKey, array $config, array $data = []): string
+    public function handle(PrivateKey $privateKey, array $config = [], array $data = []): string
     {
         return $privateKey->getPublicKey()->toString($data['format'] ?? 'PKCS8');
     }

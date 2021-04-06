@@ -22,7 +22,7 @@ class CertificateAuthorityHandlerTest extends TestCase
         $handler = new CertificateAuthorityHandler();
         /** @var PrivateKey $privateKey */
         $privateKey = PrivateKey::createKey();
-        $result = $handler->handle($privateKey);
+        $result = $handler->handle($privateKey, ['CA_FILE' => $file]);
         file_put_contents($file, $contents);
 
         self::assertSame($text, $result);

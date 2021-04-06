@@ -26,7 +26,7 @@ class PublicKeyHandlerTest extends TestCase
 
         $result = $handler->handle(
             $privateKey,
-            null,
+            [],
             ['format' => 'OpenSSH'],
         );
 
@@ -41,7 +41,7 @@ class PublicKeyHandlerTest extends TestCase
 
         $result = $handler->handle(
             PrivateKey::createKey()->withPassword('Correct'),
-            null,
+            [],
             ['format' => 'OpenSSH'],
         );
 
