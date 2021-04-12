@@ -19,60 +19,13 @@ class Issuer
      *
      * @param PrivateKey $issuerKey
      * @param PublicKey $subjectKey
-     * @param array{
-     *     countryName?: string,
-     *     organizationName?: string,
-     *     dnQualifier?: string,?: string,
-     *     commonName?: string,
-     *     state?: string,
-     *     province?: string,
-     *     provincename?: string,
-     *     localityName?: string,
-     *     emailAddress?: string,
-     *     serialNumber?: string,
-     *     postalCode?: string,
-     *     streetAddress?: string,
-     *     name?: string,
-     *     givenName?: string,
-     *     surname?: string,
-     *     initials?: string,
-     *     generationQualifier?: string,
-     *     organizationalUnitName?: string,
-     *     pseudonym?: string,
-     *     title?: string,
-     *     description?: string,
-     *     role?: string,
-     *     uniqueidentifier?: string,
-     * } $issuerDn
-     * @param array{
-     *     countryName?: string,
-     *     organizationName?: string,
-     *     dnQualifier?: string,?: string,
-     *     commonName?: string,
-     *     state?: string,
-     *     province?: string,
-     *     provincename?: string,
-     *     localityName?: string,
-     *     emailAddress?: string,
-     *     serialNumber?: string,
-     *     postalCode?: string,
-     *     streetAddress?: string,
-     *     name?: string,
-     *     givenName?: string,
-     *     surname?: string,
-     *     initials?: string,
-     *     generationQualifier?: string,
-     *     organizationalUnitName?: string,
-     *     pseudonym?: string,
-     *     title?: string,
-     *     description?: string,
-     *     role?: string,
-     *     uniqueidentifier?: string,
-     * } $subjectDn
+     * @param array $issuerDn
+     * @param array $subjectDn
      * @param string|null $serialNumber
      * @param DateTimeInterface|string|null $startDate
      * @param DateTimeInterface|string|null $endDate
      * @param iterable|array $extensions
+     * @param callable|null $configX509
      * @return string|null
      */
     public function issue(
@@ -83,7 +36,8 @@ class Issuer
         ?string $serialNumber = null,
         $startDate = null,
         $endDate = null,
-        iterable $extensions = []
+        iterable $extensions = [],
+        ?callable $configX509 = null
     ): ?string {
         $subject = new X509();
         $subject->setPublicKey($subjectKey);
@@ -94,7 +48,10 @@ class Issuer
         $issuer->setDN($issuerDn);
 
         $authority = new X509();
-        $authority->makeCA();
+
+        if ($configX509) {
+            $configX509($authority, $subject, $issuer);
+        }
 
         if ($serialNumber) {
             $authority->setSerialNumber($serialNumber, 10);
