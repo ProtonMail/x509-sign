@@ -34,6 +34,7 @@ class IssuerTest extends TestCase
         ));
 
         [
+            'extensions' => $extensions,
             'issuer' => $issuerDn,
             'subject' => $subjectDn,
         ] = $this->getCertificateData($issuer->issue(
@@ -45,6 +46,29 @@ class IssuerTest extends TestCase
 
         self::assertSame($issuerDn, ['commonName' => 'foo']);
         self::assertSame($subjectDn, ['commonName' => 'bar']);
+        self::assertFalse($extensions['id-ce-basicConstraints']['cA'] ?? false);
+
+        [
+            'extensions' => $extensions,
+            'issuer' => $issuerDn,
+            'subject' => $subjectDn,
+        ] = $this->getCertificateData($issuer->issue(
+            PrivateKey::createKey(),
+            PrivateKey::createKey()->getPublicKey(),
+            ['commonName' => 'foo'],
+            ['commonName' => 'bar'],
+            null,
+            null,
+            null,
+            [],
+            static function (X509 $authority) {
+                $authority->makeCA();
+            },
+        ));
+
+        self::assertSame($issuerDn, ['commonName' => 'foo']);
+        self::assertSame($subjectDn, ['commonName' => 'bar']);
+        self::assertTrue($extensions['id-ce-basicConstraints']['cA'] ?? false);
 
         ['serialNumber' => $serialNumber] = $this->getCertificateData($issuer->issue(
             PrivateKey::createKey(),

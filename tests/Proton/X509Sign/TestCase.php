@@ -27,11 +27,12 @@ class TestCase extends TestCaseBase
         $hours = (int) round(($time - time()) / 3600);
         $extensions = [];
 
-        foreach ($data['tbsCertificate']['extensions'] as $extension) {
+        foreach (($data['tbsCertificate']['extensions'] ?? []) as $extension) {
             $extensions[$extension['extnId']] = $extension['extnValue'] ?? null;
         }
 
         return [
+            'ca' => $data,
             'hours' => $hours,
             'issuer' => $this->getRdnSequenceData($data['tbsCertificate']['issuer']),
             'subject' => $this->getRdnSequenceData($data['tbsCertificate']['subject']),
