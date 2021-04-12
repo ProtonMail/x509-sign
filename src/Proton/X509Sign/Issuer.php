@@ -109,7 +109,7 @@ class Issuer
         }
 
         foreach ($extensions as $id => $value) {
-            if (isset($this->extensions[$id])) {
+            if (isset($this->extensions[$id]) || preg_match('/^\d+(?:\.\d+)+$/', (string) ASN1::getOID($id))) {
                 $authority->setExtensionValue($id, $value);
             }
         }
