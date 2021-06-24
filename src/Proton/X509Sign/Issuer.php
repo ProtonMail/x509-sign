@@ -68,13 +68,11 @@ class Issuer
 
         foreach ($extensions as $id => $value) {
             if (isset($this->extensions[$id]) || preg_match('/^\d+(?:\.\d+)+$/', ASN1::getOID($id))) {
-                if (isset($value['value'], $value['critical'], $value['replace'])) {
-                    $authority->setExtensionValue($id, $value['value'], $value['critical'], $value['replace']);
+                $arguments = isset($value['value'], $value['critical'], $value['replace'])
+                    ? [$value['value'], $value['critical'], $value['replace']]
+                    : [$value];
 
-                    continue;
-                }
-
-                $authority->setExtensionValue($id, $value);
+                $authority->setExtensionValue($id, ...$arguments);
             }
         }
 
