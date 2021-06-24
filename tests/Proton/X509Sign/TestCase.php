@@ -19,7 +19,7 @@ class TestCase extends TestCaseBase
      *     extensions: array,
      * }
      */
-    protected function getCertificateData(string $certificate): array
+    protected function getCertificateData(string $certificate, bool $fullExtension = false): array
     {
         $x509 = new X509();
         $data = $x509->loadX509($certificate);
@@ -28,7 +28,9 @@ class TestCase extends TestCaseBase
         $extensions = [];
 
         foreach (($data['tbsCertificate']['extensions'] ?? []) as $extension) {
-            $extensions[$extension['extnId']] = $extension['extnValue'] ?? null;
+            $extensions[$extension['extnId']] = $fullExtension
+                ? $extension
+                : ($extension['extnValue'] ?? null);
         }
 
         return [

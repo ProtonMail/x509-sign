@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Proton\X509Sign\Unit;
 
+use InvalidArgumentException;
 use phpseclib3\Crypt\DSA;
 use phpseclib3\Crypt\EC;
 use phpseclib3\Crypt\RSA;
@@ -260,6 +261,29 @@ class IssuerTest extends TestCase
         ));
 
         self::assertSame('Yub yub!', $extensions['custom-ext-1']);
+
+        ['extensions' => $extensions] = $this->getCertificateData($issuer->issue(
+            DSA::createKey(),
+            DSA::createKey()->getPublicKey(),
+            ['commonName' => 'foo'],
+            ['commonName' => 'bar'],
+            null,
+            null,
+            null,
+            [
+                'custom-ext-1' => [
+                    'value' => 'Yub yub!',
+                    'critical' => true,
+                    'replace' => false,
+                ],
+            ],
+        ), true);
+
+        self::assertSame([
+            'extnId' => 'custom-ext-1',
+            'critical' => true,
+            'extnValue' => 'Yub yub!',
+        ], $extensions['custom-ext-1']);
     }
 
     /**
@@ -298,5 +322,53 @@ class IssuerTest extends TestCase
 
         self::assertSame(['type' => ASN1::TYPE_INTEGER], $extensionsReflector->getValue()['my-id']);
         self::assertSame(['type' => ASN1::TYPE_ANY], $extensionsReflector->getValue()['foo']);
+    }
+
+    /**
+     * @covers ::loadExtensions
+     */
+    public function testLoadExtensionsOIDException(): void
+    {
+        self::expectException(InvalidArgumentException::class);
+        self::expectExceptionMessage('Extension ID and OID must be strings');
+
+        $handler = new class () extends Issuer {
+            public function callLoadExtensions(array $extensions): void
+            {
+                $this->loadExtensions($extensions);
+            }
+        };
+
+        $handler->callLoadExtensions([
+            [
+                'my-id',
+                ['not a string'],
+                ['type' => ASN1::TYPE_ANY],
+            ],
+        ]);
+    }
+
+    /**
+     * @covers ::loadExtensions
+     */
+    public function testLoadExtensionsIDException(): void
+    {
+        self::expectException(InvalidArgumentException::class);
+        self::expectExceptionMessage('Extension ID and OID must be strings');
+
+        $handler = new class () extends Issuer {
+            public function callLoadExtensions(array $extensions): void
+            {
+                $this->loadExtensions($extensions);
+            }
+        };
+
+        $handler->callLoadExtensions([
+            [
+                25, // not a string
+                'string',
+                ['type' => ASN1::TYPE_ANY],
+            ],
+        ]);
     }
 }

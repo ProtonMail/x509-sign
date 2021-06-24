@@ -126,6 +126,73 @@ class SignedCertificateHandlerTest extends TestCase
 
     /**
      * @covers ::handle
+     * @covers ::issueCertificateData
+     */
+    public function testHandleWithCertificateData(): void
+    {
+        $signServerPrivateKey = EC::createKey('Ed25519');
+
+        $application = new Application();
+        $user = new User();
+        $clientPublicKey = $user->getPublicKey();
+
+        $result = (new SignedCertificateHandler())->handle(
+            $signServerPrivateKey,
+            [],
+            [
+                'extensions' => [$application->getExtension()],
+                'certificateData' => [
+                    'issuerDN' => ['commonName' => 'Foo'],
+                    'subjectDN' => ['commonName' => 'Bar'],
+                    'serialNumber' => '123',
+                    'notBefore' => '2021-06-24T12:00:00.000000Z',
+                    'notAfter' => '2021-07-24T12:00:00.000000Z',
+                    'extensions' => [
+                        Application::NAME => [
+                            'cool' => true,
+                            'level' => 22,
+                            'name' => 'Audrey',
+                        ],
+                    ],
+                ],
+                'clientPublicKey' => $user->getPublicKey(),
+            ],
+        );
+
+        $data = $this->getCertificateData($result);
+        $tbs = $data['ca']['tbsCertificate'];
+
+        self::assertSame('123', (string) $tbs['serialNumber']);
+        $issuer = $tbs['issuer']['rdnSequence'][0][0];
+        self::assertSame('id-at-commonName', $issuer['type']);
+        self::assertSame('Foo', $issuer['value']['utf8String']);
+        $subject = $tbs['subject']['rdnSequence'][0][0];
+        self::assertSame('id-at-commonName', $subject['type']);
+        self::assertSame('Bar', $subject['value']['utf8String']);
+        self::assertSame('Thu, 24 Jun 2021 12:00:00 +0000', $tbs['validity']['notBefore']['utcTime']);
+        self::assertSame('Sat, 24 Jul 2021 12:00:00 +0000', $tbs['validity']['notAfter']['utcTime']);
+        self::assertSame($clientPublicKey, $tbs['subjectPublicKeyInfo']['subjectPublicKey']);
+        $tbs['extensions'][1]['extnValue']['level'] = (string) $tbs['extensions'][1]['extnValue']['level'];
+        self::assertSame([
+            [
+                'extnId' => 'id-ce-subjectKeyIdentifier',
+                'critical' => false,
+                'extnValue' => (new X509())->computeKeyIdentifier($clientPublicKey),
+            ],
+            [
+                'extnId' => Application::NAME,
+                'critical' => false,
+                'extnValue' => [
+                    'cool' => true,
+                    'level' => '22',
+                    'name' => 'Audrey',
+                ],
+            ],
+        ], $tbs['extensions']);
+    }
+
+    /**
+     * @covers ::handle
      */
     public function testHandleIncorrectCertificate(): void
     {
