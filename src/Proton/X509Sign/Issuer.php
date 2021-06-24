@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Proton\X509Sign;
 
 use DateTimeInterface;
+use InvalidArgumentException;
 use phpseclib3\Crypt\Common\PrivateKey;
 use phpseclib3\Crypt\Common\PublicKey;
 use phpseclib3\File\ASN1;
@@ -66,7 +67,13 @@ class Issuer
         }
 
         foreach ($extensions as $id => $value) {
-            if (isset($this->extensions[$id]) || preg_match('/^\d+(?:\.\d+)+$/', (string) ASN1::getOID($id))) {
+            if (isset($this->extensions[$id]) || preg_match('/^\d+(?:\.\d+)+$/', ASN1::getOID($id))) {
+                if (isset($value['value'], $value['critical'], $value['replace'])) {
+                    $authority->setExtensionValue($id, $value['value'], $value['critical'], $value['replace']);
+
+                    continue;
+                }
+
                 $authority->setExtensionValue($id, $value);
             }
         }
@@ -86,6 +93,10 @@ class Issuer
         $oids = [];
 
         foreach ($extensions as [$id, $oID, $structure]) {
+            if (!is_string($id) || !is_string($oID)) {
+                throw new InvalidArgumentException('Extension ID and OID must be strings');
+            }
+
             $this->extensions[$id] = $oID;
             $oids[$id] = $oID;
 

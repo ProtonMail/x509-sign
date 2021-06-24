@@ -32,28 +32,35 @@ final class SignedCertificateHandler implements RequestHandlerInterface
      * } $config
      * @param array{
      *     mode: Key::EC | Key::RSA | Key::DSA,
-     *     certificate: string, clientPublicKey: string,
+     *     clientPublicKey: string,
+     *     certificate?: string,
+     *     extensions?: array<string, array>,
+     *     certificateData?: {
+     *         serialNumber: string,
+     *         issuerDN: array,
+     *         subjectDN: array,
+     *         notBefore: string,
+     *         notAfter: string,
+     *         extensions: array,
+     *     },
      * } $data
      * @return string
      */
     public function handle(PrivateKey $privateKey, array $config = [], array $data = []): string
     {
-        /**
-         * @var string $certificate
-         * @var string $clientPublicKeyString
-         */
-        [
-            'certificate' => $certificate,
-            'clientPublicKey' => $clientPublicKeyString,
-        ] = $data;
-
-        $clientPublicKey = Key::loadPublic($data['mode'] ?? Key::EC, $clientPublicKeyString);
+        $clientPublicKey = Key::loadPublic($data['mode'] ?? Key::EC, $data['clientPublicKey']);
 
         if (isset($config['EXTENSIONS'])) {
             $this->loadExtensions(json_decode($config['EXTENSIONS'], true));
         }
 
-        $result = $this->reIssueCertificate($certificate, $privateKey, $clientPublicKey);
+        if (isset($data['extensions'])) {
+            $this->loadExtensions($data['extensions']);
+        }
+
+        $result = isset($data['certificate'])
+            ? $this->reIssueCertificate($data['certificate'], $privateKey, $clientPublicKey)
+            : $this->issueCertificateData($data['certificateData'], $privateKey, $clientPublicKey);
 
         if (!$result) {
             throw new RuntimeException('Unable to sign the CSR.');
@@ -82,6 +89,38 @@ final class SignedCertificateHandler implements RequestHandlerInterface
             $certificateData['validity']['notBefore']['utcTime'],
             $certificateData['validity']['notAfter']['utcTime'],
             $this->getExtensionsValues($certificateData),
+        );
+    }
+
+    /**
+     * @param array{
+     *     serialNumber: string,
+     *     issuerDN: array,
+     *     subjectDN: array,
+     *     notBefore: string,
+     *     notAfter: string,
+     *     extensions: array,
+     * } $certificateData
+     * @param PrivateKey $issuerKey
+     * @param PublicKey $subjectKey
+     * @return string|null
+     */
+    protected function issueCertificateData(array $certificateData, PrivateKey $issuerKey, PublicKey $subjectKey): ?string
+    {
+        return $this->issuer->issue(
+            $issuerKey,
+            $subjectKey,
+            $certificateData['issuerDN'],
+            $certificateData['subjectDN'],
+            $certificateData['serialNumber'],
+            $certificateData['notBefore'],
+            $certificateData['notAfter'],
+            $certificateData['extensions'],
+            static function (X509 $authority, X509 $subject) {
+                $subject->setKeyIdentifier(
+                    $subject->computeKeyIdentifier($subject->getPublicKey()->toString('PKCS8')),
+                );
+            },
         );
     }
 
