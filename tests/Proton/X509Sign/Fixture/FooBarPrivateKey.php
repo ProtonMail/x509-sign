@@ -23,7 +23,7 @@ class FooBarPrivateKey implements PrivateKey
         // noop
     }
 
-    public function withPassword($string)
+    public function withPassword($string = false)
     {
         // noop
     }
