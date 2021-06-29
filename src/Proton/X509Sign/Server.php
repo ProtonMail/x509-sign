@@ -34,7 +34,8 @@ class Server
 
     private static function getEnv(array $keys): array
     {
-        $cache = (@include __DIR__ . '/../../../storage/env.php') ?: [];
+        $envFile = __DIR__ . '/../../../storage/env.php';
+        $cache = file_exists($envFile) ? (@include $envFile) : [];
 
         return array_combine($keys, array_map(
             static fn (string $key) => array_key_exists($key, $cache) ? $cache[$key] : getenv($key),
