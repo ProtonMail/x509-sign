@@ -11,6 +11,8 @@ Expose `index.php` on a webserver.
 Get the signature server public key:
 ```
 POST /
+```
+```json
 {
   "publicKey": {}
 }
@@ -19,6 +21,8 @@ POST /
 Or specify a format:
 ```
 POST /
+```
+```json
 {
   "publicKey": {"format": "PSS"}
 }
@@ -27,6 +31,8 @@ POST /
 Request a signature:
 ```
 POST /
+```
+```json
 {
   "signedCertificate": {
     "certificate": "-----BEGIN...",
@@ -39,8 +45,10 @@ You can group requests and get both results aggregated:
 
 ```
 POST /
+```
+```json
 {
-  "publicKey": {}
+  "publicKey": {},
   "signedCertificate": {
     "certificate": "-----BEGIN...",
     "clientPublicKey": "-----BEGIN..."
@@ -50,7 +58,7 @@ POST /
 
 Would result the following JSON output:
 
-```
+```json
 {
   "publicKey": {
     "success": true,
