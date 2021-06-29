@@ -63,7 +63,7 @@ Would result the following JSON output:
   "publicKey": {
     "success": true,
     "result": "-----BEGIN..."
-  }
+  },
   "signedCertificate": {
     "success": true,
     "result": "-----BEGIN..."
